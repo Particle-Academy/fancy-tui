@@ -19,4 +19,5 @@ jobs:
       - run: npm test
       - run: npm run lint
       - run: npm run build
-      - run: npx -y npm@latest publish --provenance --access public
+      # Pin npm to 11.18.0 — npm 12.x broke --provenance/sigstore (suite-wide pin).
+      - run: npx -y npm@11.18.0 publish --provenance --access public
