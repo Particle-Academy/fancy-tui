@@ -3,7 +3,7 @@ import { afterEach, it } from "node:test";
 import React from "react";
 import { cleanup, render } from "ink-testing-library";
 import { FancyTuiProvider } from "./theme.js";
-import { Panel, Responsive, Text } from "./layout.js";
+import { Header, Panel, Responsive, Row, Screen, Stack, StatusBar, Text } from "./layout.js";
 import { MessageList, LiveRegion } from "./content.js";
 import { Input, MultilineInput } from "./inputs.js";
 
@@ -102,4 +102,59 @@ it("lets the first mounted focusable win rather than stealing focus", async () =
   const frame = view.lastFrame() ?? "";
   assert.equal((frame.match(/▌/g) ?? []).length, 1);
   assert.match(frame, /▌alpha/);
+});
+
+// ── Plain strings in ReactNode slots ────────────────────────────────────────
+//
+// Ink discards raw text placed directly inside a Box — and not just the text:
+// the entire subtree renders empty, with nothing on stderr. So `status="ok"`
+// (the obvious call) silently produced a blank frame while `status={<Text/>}`
+// worked. Every ReactNode slot now routes through tuiNode().
+
+it("renders a Header whose status is a plain string", async () => {
+  const view = render(<FancyTuiProvider><Header title="Fancy TUI" status="connected" /></FancyTuiProvider>);
+  await settled();
+  const frame = view.lastFrame() ?? "";
+  assert.match(frame, /Fancy TUI/);
+  assert.match(frame, /connected/);
+});
+
+it("renders a StatusBar built entirely from strings", async () => {
+  const view = render(<FancyTuiProvider><StatusBar left="3 workers" center="main" right="Ctrl+R refresh" /></FancyTuiProvider>);
+  await settled();
+  const frame = view.lastFrame() ?? "";
+  assert.match(frame, /3 workers/);
+  assert.match(frame, /main/);
+  assert.match(frame, /Ctrl\+R refresh/);
+});
+
+it("renders string children inside Stack, Row, Panel, and Screen", async () => {
+  const view = render(
+    <FancyTuiProvider>
+      <Screen>
+        <Stack>stack text</Stack>
+        <Row>row text</Row>
+        <Panel title="Run">panel text</Panel>
+      </Screen>
+    </FancyTuiProvider>,
+  );
+  await settled();
+  const frame = view.lastFrame() ?? "";
+  for (const expected of [/stack text/, /row text/, /panel text/]) {
+    assert.match(frame, expected);
+  }
+});
+
+it("still renders element children unchanged", async () => {
+  const view = render(<FancyTuiProvider><Header title="T" status={<Text>wrapped</Text>} /></FancyTuiProvider>);
+  await settled();
+  assert.match(view.lastFrame() ?? "", /wrapped/);
+});
+
+it("renders mixed string and element children", async () => {
+  const view = render(<FancyTuiProvider><Row>{"plain "}<Text>element</Text></Row></FancyTuiProvider>);
+  await settled();
+  const frame = view.lastFrame() ?? "";
+  assert.match(frame, /plain/);
+  assert.match(frame, /element/);
 });

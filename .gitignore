@@ -3,3 +3,4 @@ dist/
 coverage/
 .test-dist/
 *.tgz
+.showcase-dist/

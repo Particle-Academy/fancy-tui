@@ -6,14 +6,35 @@ import type { TuiSize, TuiTone } from "./types.js";
 export type BoxProps = InkBoxProps;
 export const Box = InkBox;
 
+/**
+ * Wrap bare strings/numbers in `<Text>` before they reach an Ink `Box`.
+ *
+ * Ink requires text to live inside a `<Text>`; a raw string placed directly in
+ * a Box does not just render unstyled — it makes the WHOLE subtree render as
+ * empty output, with nothing written to stderr. So `<Header status="ok" />`,
+ * the most natural way to call these components, silently produced a blank
+ * frame while `status={<Text>ok</Text>}` worked.
+ *
+ * Every component taking a `ReactNode` slot and placing it in a Box routes it
+ * through here, so a plain string is always accepted.
+ */
+export function tuiNode(value: ReactNode): ReactNode {
+  if (value === null || value === undefined || typeof value === "boolean") return value;
+  if (typeof value === "string" || typeof value === "number") return <InkText>{value}</InkText>;
+  if (Array.isArray(value)) {
+    return Children.map(value as ReactNode[], (child) => tuiNode(child));
+  }
+  return value;
+}
+
 export type StackProps = Omit<InkBoxProps, "gap" | "children"> & { gap?: TuiSize | number; children?: ReactNode };
 export function Stack({ gap = "md", children, ...props }: StackProps) {
   const { theme } = useFancyTui();
-  return <InkBox flexDirection="column" gap={typeof gap === "number" ? gap : theme.spacing[gap]} {...props}>{children}</InkBox>;
+  return <InkBox flexDirection="column" gap={typeof gap === "number" ? gap : theme.spacing[gap]} {...props}>{tuiNode(children)}</InkBox>;
 }
 export function Row({ gap = "md", children, ...props }: StackProps) {
   const { theme } = useFancyTui();
-  return <InkBox flexDirection="row" gap={typeof gap === "number" ? gap : theme.spacing[gap]} {...props}>{children}</InkBox>;
+  return <InkBox flexDirection="row" gap={typeof gap === "number" ? gap : theme.spacing[gap]} {...props}>{tuiNode(children)}</InkBox>;
 }
 export function Column(props: StackProps) { return <Stack {...props} />; }
 export function Spacer() { return <InkBox flexGrow={1} />; }
@@ -38,27 +59,27 @@ export function Panel({ title, tone = "neutral", focused = false, padding = "md"
     {...props}
   >
     {title ? <InkText color={theme.colors[tone]} bold>{title}</InkText> : null}
-    {children}
+    {tuiNode(children)}
   </InkBox>;
 }
 
 function CardRoot(props: PanelProps) { return <Panel {...props} />; }
 function CardHeader({ children }: { children?: ReactNode }) { return <InkBox marginBottom={1}><InkText bold>{children}</InkText></InkBox>; }
-function CardBody({ children }: { children?: ReactNode }) { return <InkBox flexDirection="column">{children}</InkBox>; }
-function CardFooter({ children }: { children?: ReactNode }) { return <InkBox marginTop={1}>{children}</InkBox>; }
+function CardBody({ children }: { children?: ReactNode }) { return <InkBox flexDirection="column">{tuiNode(children)}</InkBox>; }
+function CardFooter({ children }: { children?: ReactNode }) { return <InkBox marginTop={1}>{tuiNode(children)}</InkBox>; }
 export const Card = Object.assign(CardRoot, { Header: CardHeader, Body: CardBody, Footer: CardFooter });
 
 export interface HeaderProps { title: string; subtitle?: string; status?: ReactNode; }
 export function Header({ title, subtitle, status }: HeaderProps) {
   const { theme } = useFancyTui();
-  return <Row><InkText bold color={theme.colors.primary}>{title}</InkText>{subtitle ? <InkText dimColor>{subtitle}</InkText> : null}<Spacer />{status}</Row>;
+  return <Row><InkText bold color={theme.colors.primary}>{title}</InkText>{subtitle ? <InkText dimColor>{subtitle}</InkText> : null}<Spacer />{tuiNode(status)}</Row>;
 }
 export interface StatusBarProps { left?: ReactNode; center?: ReactNode; right?: ReactNode; }
 export function StatusBar({ left, center, right }: StatusBarProps) {
   const { theme } = useFancyTui();
-  return <InkBox borderStyle="single" borderColor={theme.colors.border} paddingX={1}><InkBox>{left}</InkBox><Spacer /><InkBox>{center}</InkBox><Spacer /><InkBox>{right}</InkBox></InkBox>;
+  return <InkBox borderStyle="single" borderColor={theme.colors.border} paddingX={1}><InkBox>{tuiNode(left)}</InkBox><Spacer /><InkBox>{tuiNode(center)}</InkBox><Spacer /><InkBox>{tuiNode(right)}</InkBox></InkBox>;
 }
-export function Screen({ children }: { children?: ReactNode }) { return <InkBox width="100%" flexDirection="column">{children}</InkBox>; }
+export function Screen({ children }: { children?: ReactNode }) { return <InkBox width="100%" flexDirection="column">{tuiNode(children)}</InkBox>; }
 export function Responsive({ below, children, fallback = null }: { below: number; children?: ReactNode; fallback?: ReactNode }) {
   const { width } = useTerminalSize(); return <>{width < below ? fallback : children}</>;
 }

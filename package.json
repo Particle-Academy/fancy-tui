@@ -1,6 +1,6 @@
 {
   "name": "@particle-academy/fancy-tui",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Ink components for Human+ terminal applications",
   "repository": {
     "type": "git",
@@ -31,19 +31,22 @@
     "./testing": {
       "types": "./dist/testing.d.mts",
       "import": "./dist/testing.mjs"
-    }
+    },
+    "./showcase/previews.json": "./showcase/previews.json"
   },
   "files": [
     "dist",
     "docs",
-    "README.md"
+    "README.md",
+    "showcase"
   ],
   "scripts": {
     "build": "tsdown",
     "dev": "tsdown --watch",
     "lint": "tsc --noEmit",
     "test": "tsc -p tsconfig.test.json && node --test .test-dist/**/*.test.js",
-    "prepublishOnly": "npm run test && npm run lint && npm run build"
+    "prepublishOnly": "npm run test && npm run lint && npm run build",
+    "showcase": "tsc -p tsconfig.showcase.json && node .showcase-dist/scripts/showcase.js"
   },
   "peerDependencies": {
     "ink": "^7.1.0",

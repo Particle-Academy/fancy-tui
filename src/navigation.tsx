@@ -1,16 +1,16 @@
 import { useMemo, type ReactNode } from "react";
 import { Box, useFocus, useInput } from "ink";
 import { Button } from "./inputs.js";
-import { Panel, Row, Stack, Text } from "./layout.js";
+import { Panel, Row, Stack, Text, tuiNode } from "./layout.js";
 import { useTuiSurface } from "./registry.js";
 import type { InteractiveProps, Option } from "./types.js";
 
 export function Tabs({ id, value, onChange, tabs }: InteractiveProps & { value: string; onChange: (id: string) => void; tabs: Array<Option & { content?: ReactNode }> }) {
   const active = tabs.find((x) => x.id === value);
-  return <Stack><Row>{tabs.map((tab) => <Button key={tab.id} id={`${id}:${tab.id}`} onPress={() => onChange(tab.id)} tone={tab.id === value ? "primary" : "neutral"}>{tab.label}</Button>)}</Row>{active?.content}</Stack>;
+  return <Stack><Row>{tabs.map((tab) => <Button key={tab.id} id={`${id}:${tab.id}`} onPress={() => onChange(tab.id)} tone={tab.id === value ? "primary" : "neutral"}>{tab.label}</Button>)}</Row>{tuiNode(active?.content)}</Stack>;
 }
 export function Accordion({ id, value, onChange, items }: InteractiveProps & { value: string[]; onChange: (ids: string[]) => void; items: Array<Option & { content?: ReactNode }> }) {
-  return <Stack gap={0}>{items.map((item) => { const open = value.includes(item.id); return <Stack gap={0} key={item.id}><Button id={`${id}:${item.id}`} tone="neutral" onPress={() => onChange(open ? value.filter((x) => x !== item.id) : [...value, item.id])}>{open ? "▾" : "▸"} {item.label}</Button>{open ? <Box marginLeft={2}>{item.content}</Box> : null}</Stack>; })}</Stack>;
+  return <Stack gap={0}>{items.map((item) => { const open = value.includes(item.id); return <Stack gap={0} key={item.id}><Button id={`${id}:${item.id}`} tone="neutral" onPress={() => onChange(open ? value.filter((x) => x !== item.id) : [...value, item.id])}>{open ? "▾" : "▸"} {item.label}</Button>{open ? <Box marginLeft={2}>{tuiNode(item.content)}</Box> : null}</Stack>; })}</Stack>;
 }
 export function Breadcrumbs({ items }: { items: Array<{ id: string; label: string }> }) { return <Text>{items.map((x) => x.label).join(" › ")}</Text>; }
 export function Pagination({ id, page, pages, onChange }: InteractiveProps & { page: number; pages: number; onChange: (page: number) => void }) { return <Row><Button id={`${id}:prev`} disabled={page <= 1} onPress={() => onChange(page - 1)}>Prev</Button><Text>{page} / {pages}</Text><Button id={`${id}:next`} disabled={page >= pages} onPress={() => onChange(page + 1)}>Next</Button></Row>; }
