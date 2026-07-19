@@ -24,3 +24,4 @@ export * from "./markdown/index.js";
  * ```
  */
 export { useFocusManager } from "ink";
+export * from "./document.js";
