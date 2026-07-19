@@ -1,22 +1,43 @@
 {
   "name": "@particle-academy/fancy-tui",
-  "version": "0.1.2",
+  "version": "0.2.0",
   "description": "Ink components for Human+ terminal applications",
-  "repository": { "type": "git", "url": "git+https://github.com/Particle-Academy/fancy-tui.git" },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Particle-Academy/fancy-tui.git"
+  },
   "homepage": "https://github.com/Particle-Academy/fancy-tui#readme",
   "bugs": "https://github.com/Particle-Academy/fancy-tui/issues",
   "license": "MIT",
   "type": "module",
-  "engines": { "node": ">=22" },
+  "engines": {
+    "node": ">=22"
+  },
   "main": "./dist/index.mjs",
   "types": "./dist/index.d.mts",
   "exports": {
-    ".": { "types": "./dist/index.d.mts", "import": "./dist/index.mjs" },
-    "./keyboard": { "types": "./dist/keyboard.d.mts", "import": "./dist/keyboard.mjs" },
-    "./markdown": { "types": "./dist/markdown.d.mts", "import": "./dist/markdown.mjs" },
-    "./testing": { "types": "./dist/testing.d.mts", "import": "./dist/testing.mjs" }
+    ".": {
+      "types": "./dist/index.d.mts",
+      "import": "./dist/index.mjs"
+    },
+    "./keyboard": {
+      "types": "./dist/keyboard.d.mts",
+      "import": "./dist/keyboard.mjs"
+    },
+    "./markdown": {
+      "types": "./dist/markdown.d.mts",
+      "import": "./dist/markdown.mjs"
+    },
+    "./testing": {
+      "types": "./dist/testing.d.mts",
+      "import": "./dist/testing.mjs"
+    }
   },
-  "files": ["dist", "docs", "README.md"],
+  "files": [
+    "dist",
+    "docs",
+    "README.md"
+  ],
   "scripts": {
     "build": "tsdown",
     "dev": "tsdown --watch",
@@ -24,8 +45,16 @@
     "test": "tsc -p tsconfig.test.json && node --test .test-dist/**/*.test.js",
     "prepublishOnly": "npm run test && npm run lint && npm run build"
   },
-  "peerDependencies": { "ink": "^7.1.0", "react": ">=19.2.0" },
-  "dependencies": { "chalk": "^5.6.2", "marked": "^15.0.0", "marked-terminal": "^7.3.0", "string-width": "^8.2.0" },
+  "peerDependencies": {
+    "ink": "^7.1.0",
+    "react": ">=19.2.0"
+  },
+  "dependencies": {
+    "chalk": "^5.6.2",
+    "marked": "^15.0.0",
+    "marked-terminal": "^7.3.0",
+    "string-width": "^8.2.0"
+  },
   "devDependencies": {
     "@types/marked-terminal": "^6.1.1",
     "@types/node": "^24.0.0",
@@ -36,5 +65,7 @@
     "tsdown": "^0.22.9",
     "typescript": "^5.9.0"
   },
-  "publishConfig": { "access": "public" }
+  "publishConfig": {
+    "access": "public"
+  }
 }

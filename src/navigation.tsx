@@ -15,8 +15,8 @@ export function Accordion({ id, value, onChange, items }: InteractiveProps & { v
 export function Breadcrumbs({ items }: { items: Array<{ id: string; label: string }> }) { return <Text>{items.map((x) => x.label).join(" › ")}</Text>; }
 export function Pagination({ id, page, pages, onChange }: InteractiveProps & { page: number; pages: number; onChange: (page: number) => void }) { return <Row><Button id={`${id}:prev`} disabled={page <= 1} onPress={() => onChange(page - 1)}>Prev</Button><Text>{page} / {pages}</Text><Button id={`${id}:next`} disabled={page >= pages} onPress={() => onChange(page + 1)}>Next</Button></Row>; }
 
-export function Menu({ id, value, onChange, items }: InteractiveProps & { value?: string; onChange: (id: string) => void; items: Option[] }) {
-  const { isFocused } = useFocus({ id }); let index = Math.max(0, items.findIndex((x) => x.id === value));
+export function Menu({ id, value, onChange, items, disabled = false, autoFocus = true }: InteractiveProps & { value?: string; onChange: (id: string) => void; items: Option[] }) {
+  const { isFocused } = useFocus({ id, isActive: !disabled, autoFocus }); let index = Math.max(0, items.findIndex((x) => x.id === value));
   useInput((_input, key) => { if (!isFocused) return; if (key.downArrow) onChange(items[Math.min(items.length - 1, index + 1)]?.id ?? value ?? ""); if (key.upArrow) onChange(items[Math.max(0, index - 1)]?.id ?? value ?? ""); });
   return <Stack gap={0}>{items.map((item) => <Text key={item.id} tone={item.id === value ? "primary" : "text"}>{item.id === value ? "› " : "  "}{item.label}</Text>)}</Stack>;
 }
