@@ -34,6 +34,9 @@ type Entry = {
   columns?: number;
 };
 
+/** Layout width every preview is captured at — matches the docs card. */
+const COLUMNS = 68;
+
 const noop = () => {};
 const options = [
   { id: "build", label: "Build" },
@@ -384,14 +387,21 @@ async function main() {
 
   const out: Array<Record<string, unknown>> = [];
   for (const entry of entries) {
-    const view = render(<FancyTuiProvider>{entry.node}</FancyTuiProvider>);
+    // Constrain layout to the documented width. Ink otherwise fills the
+    // harness' default 100 columns, and a docs site rendering the frame in a
+    // narrower pane would clip every border.
+    const view = render(
+      <FancyTuiProvider>
+        <Box width={COLUMNS} flexDirection="column">{entry.node}</Box>
+      </FancyTuiProvider>,
+    );
     await settle();
     const frame = view.lastFrame() ?? "";
     view.unmount();
     if (!frame.trim()) {
       console.error(`  !! ${entry.slug} rendered an empty frame`);
     }
-    out.push({ slug: entry.slug, name: entry.name, group: entry.group, source: entry.source, frame });
+    out.push({ slug: entry.slug, name: entry.name, group: entry.group, source: entry.source, frame, columns: COLUMNS });
     console.log(`  ✓ ${entry.name}`);
   }
 
