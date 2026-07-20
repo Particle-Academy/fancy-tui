@@ -25,16 +25,26 @@ export interface FancyTuiProviderProps {
   children: ReactNode;
   theme?: TuiTheme;
   capabilities?: Partial<TerminalCapabilities>;
+  /**
+   * Override the terminal size instead of reading it from stdout.
+   *
+   * Needed whenever the render target is not this process own terminal: a
+   * server-side render for a browser terminal knows the client grid, and
+   * stdout columns describes the wrong screen entirely. Also what lets a test
+   * assert responsive behaviour without faking a TTY.
+   */
+  width?: number;
+  height?: number;
 }
 
-export function FancyTuiProvider({ children, theme = darkTheme, capabilities }: FancyTuiProviderProps) {
+export function FancyTuiProvider({ children, theme = darkTheme, capabilities, width, height }: FancyTuiProviderProps) {
   const { stdout } = useStdout();
   const value = useMemo(() => ({
     theme,
     capabilities: { ...defaultCapabilities, ...capabilities },
-    width: stdout?.columns ?? 80,
-    height: stdout?.rows ?? 24,
-  }), [theme, capabilities, stdout?.columns, stdout?.rows]);
+    width: width ?? stdout?.columns ?? 80,
+    height: height ?? stdout?.rows ?? 24,
+  }), [theme, capabilities, width, height, stdout?.columns, stdout?.rows]);
   return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
 }
 

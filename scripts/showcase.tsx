@@ -17,7 +17,7 @@ import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { FancyTuiProvider } from "../src/theme.js";
-import { Box, Card, Column, Header, Panel, Responsive, Row, Screen, Separator, Sidebar, Spacer, Stack, StatusBar, Text, Heading, KeyHint } from "../src/layout.js";
+import { Box, Card, Column, Header, Panel, Responsive, Row, Screen, Separator, Sidebar, Spacer, Stack, StatusBar, Text, Heading, Hero, KeyHint } from "../src/layout.js";
 import { ActivityIndicator, Avatar, Badge, Callout, Profile, Progress, Skeleton, Spinner, Timeline } from "../src/display.js";
 import { Autocomplete, Button, Checkbox, CheckboxGroup, DisplayValue, Field, Form, Input, MultilineInput, MultiSwitch, Pillbox, RadioGroup, Select, Slider, Switch } from "../src/inputs.js";
 import { Accordion, Breadcrumbs, Command, Menu, Modal, Pagination, Tabs, Toast } from "../src/navigation.js";
@@ -46,6 +46,23 @@ const options = [
 
 const entries: Entry[] = [
   // ── Layout ────────────────────────────────────────────────────────────────
+  {
+    slug: "hero", name: "Hero", group: "Layout", columns: 72,
+    source: `<Hero
+  title="Fancy Docs"
+  version="v0.4.0"
+  tagline="Browse the Fancy UI registry from your terminal"
+  mark={["╭───╮", "│ F │", "╰───╯"]}
+  hints={[{ keys: "/", label: "search" }, { keys: "enter", label: "open" }, { keys: "?", label: "help" }]}
+/>`,
+    node: <Hero
+      title="Fancy Docs"
+      version="v0.4.0"
+      tagline="Browse the Fancy UI registry from your terminal"
+      mark={["╭───╮", "│ F │", "╰───╯"]}
+      hints={[{ keys: "/", label: "search" }, { keys: "enter", label: "open" }, { keys: "?", label: "help" }]}
+    />,
+  },
   {
     slug: "screen", name: "Screen", group: "Layout",
     source: `<Screen>\n  <Header title="Deploy agent" status="connected" />\n  <Text>Ready for instructions.</Text>\n</Screen>`,

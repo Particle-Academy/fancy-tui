@@ -100,3 +100,102 @@ export function KeyHint({ keys, label }: { keys: string | string[]; label?: stri
 export function Sidebar({ items, activeId, onChange }: { items: Array<{ id: string; label: string }>; activeId?: string; onChange?: (id: string) => void }) {
   return <Stack gap={0}>{items.map((item) => <Text key={item.id} tone={item.id === activeId ? "primary" : "text"}>{item.id === activeId ? "› " : "  "}{item.label}</Text>)}</Stack>;
 }
+
+export interface HeroHint { keys: string | string[]; label?: string }
+export interface HeroProps {
+  title: string;
+  tagline?: string;
+  version?: string;
+  /**
+   * Optional brand mark, one entry per line.
+   *
+   * Passed as DATA rather than baked in, and never padded by hand: the box is
+   * drawn by Ink from measured content, so a mark of any width stays aligned.
+   * Hand-counted terminal art is the specific mistake this library's showcase
+   * harness exists to prevent — four hand-written examples once shipped with
+   * 79/78/77-column borders inside a single box.
+   */
+  mark?: string | string[];
+  /** ASCII stand-in used when the terminal cannot render the unicode mark. */
+  asciiMark?: string | string[];
+  hints?: HeroHint[];
+  tone?: TuiTone;
+  align?: "left" | "center";
+  /** Below this width the mark is dropped and the box loses its border. */
+  compactBelow?: number;
+}
+
+/**
+ * The startup screen for a terminal app — brand mark, title, tagline, version,
+ * and how to get started.
+ *
+ * Every TUI wants one and none of them should be drawing it by hand. The
+ * layout is flexbox all the way down, so nothing here assumes a column count:
+ * on a narrow terminal the mark drops out and the border goes with it, rather
+ * than wrapping into rubble.
+ */
+export function Hero({
+  title,
+  tagline,
+  version,
+  mark,
+  asciiMark,
+  hints,
+  tone = "primary",
+  align = "center",
+  compactBelow = 48,
+}: HeroProps) {
+  const { theme, capabilities, width } = useFancyTui();
+  const compact = width < compactBelow;
+
+  // Fall back to the ASCII mark when the terminal cannot draw unicode, and
+  // drop the mark entirely when there is no room for it.
+  const chosen = capabilities.unicode ? mark : (asciiMark ?? mark);
+  const lines = chosen === undefined ? [] : Array.isArray(chosen) ? chosen : chosen.split("\n");
+  const showMark = !compact && lines.length > 0;
+  const items = align === "center" ? "center" : "flex-start";
+
+  const body = (
+    <InkBox flexDirection="column" alignItems={items} width="100%">
+      {showMark ? (
+        <InkBox flexDirection="column" alignItems={items} marginBottom={1}>
+          {lines.map((line, i) => (
+            <InkText key={i} color={theme.colors[tone]} bold>{line}</InkText>
+          ))}
+        </InkBox>
+      ) : null}
+
+      <InkBox flexDirection="row" gap={1}>
+        <InkText bold color={theme.colors[tone]}>{title}</InkText>
+        {version ? <InkText color={theme.colors.muted}>{version}</InkText> : null}
+      </InkBox>
+
+      {tagline ? <InkText color={theme.colors.muted}>{tagline}</InkText> : null}
+
+      {hints && hints.length > 0 ? (
+        <InkBox flexDirection="row" gap={2} marginTop={1} flexWrap="wrap">
+          {hints.map((hint, i) => (
+            <KeyHint key={i} keys={hint.keys} label={hint.label} />
+          ))}
+        </InkBox>
+      ) : null}
+    </InkBox>
+  );
+
+  // No border when compact: a box drawn around content that is already at the
+  // terminal's edge costs two columns it does not have.
+  if (compact) return <InkBox flexDirection="column" width="100%">{body}</InkBox>;
+
+  return (
+    <InkBox
+      borderStyle={theme.borders.panel}
+      borderColor={theme.colors[tone]}
+      paddingX={theme.spacing.lg}
+      paddingY={theme.spacing.sm}
+      flexDirection="column"
+      width="100%"
+    >
+      {body}
+    </InkBox>
+  );
+}

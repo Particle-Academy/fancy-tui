@@ -2,8 +2,9 @@ import assert from "node:assert/strict";
 import { afterEach, it } from "node:test";
 import React from "react";
 import { cleanup, render } from "ink-testing-library";
+import stringWidth from "string-width";
 import { FancyTuiProvider } from "./theme.js";
-import { Header, Panel, Responsive, Row, Screen, Stack, StatusBar, Text } from "./layout.js";
+import { Header, Hero, Panel, Responsive, Row, Screen, Stack, StatusBar, Text } from "./layout.js";
 import { MessageList, LiveRegion } from "./content.js";
 import { Input, MultilineInput } from "./inputs.js";
 
@@ -157,4 +158,74 @@ it("renders mixed string and element children", async () => {
   const frame = view.lastFrame() ?? "";
   assert.match(frame, /plain/);
   assert.match(frame, /element/);
+});
+
+// ── Hero (#startup screen) ──────────────────────────────────────────────────
+//
+// The point of shipping this rather than letting every app draw its own: hand
+// counted terminal art does not survive a content change. These assert the box
+// is derived from the content, not assumed.
+
+it("renders a hero with mark, title, version, tagline and hints", () => {
+  const view = render(
+    <FancyTuiProvider>
+      <Hero
+        title="Fancy Docs"
+        version="v0.4.0"
+        tagline="Browse the registry from your terminal"
+        mark={["┌─┐", "└─┘"]}
+        hints={[{ keys: "/", label: "search" }, { keys: "?", label: "help" }]}
+      />
+    </FancyTuiProvider>,
+  );
+  const frame = view.lastFrame() ?? "";
+  assert.match(frame, /Fancy Docs/);
+  assert.match(frame, /v0\.4\.0/);
+  assert.match(frame, /Browse the registry/);
+  assert.match(frame, /search/);
+  assert.match(frame, /help/);
+});
+
+it("keeps every hero line the same width when the mark changes width", () => {
+  // The regression this component exists to prevent: a box whose borders were
+  // counted by hand against one piece of art, then reused with another.
+  const frameFor = (mark: string[]) => {
+    const view = render(
+      <FancyTuiProvider><Hero title="T" mark={mark} /></FancyTuiProvider>,
+    );
+    const frame = view.lastFrame() ?? "";
+    cleanup();
+    return frame;
+  };
+
+  for (const mark of [["#"], ["####################"], ["a", "bbbbbbbbbbbbbbbb"]]) {
+    const lines = frameFor(mark).split("\n").filter((l) => l.length > 0);
+    const widths = new Set(lines.map((l) => stringWidth(l)));
+    assert.equal(widths.size, 1, `ragged hero for mark ${JSON.stringify(mark)}: widths ${[...widths].join()}`);
+  }
+});
+
+it("drops the mark and the border on a narrow terminal", () => {
+  // A box drawn around content already at the terminal's edge costs two
+  // columns it does not have.
+  const view = render(
+    <FancyTuiProvider width={30}>
+      <Hero title="Fancy" mark={["BIGMARK"]} compactBelow={48} />
+    </FancyTuiProvider>,
+  );
+  const frame = view.lastFrame() ?? "";
+  assert.match(frame, /Fancy/);
+  assert.doesNotMatch(frame, /BIGMARK/);
+  assert.doesNotMatch(frame, /[─│┌┐└┘╭╮╰╯]/);
+});
+
+it("swaps in the ascii mark when the terminal cannot draw unicode", () => {
+  const view = render(
+    <FancyTuiProvider capabilities={{ unicode: false }}>
+      <Hero title="Fancy" mark={["◆◆◆"]} asciiMark={["***"]} />
+    </FancyTuiProvider>,
+  );
+  const frame = view.lastFrame() ?? "";
+  assert.match(frame, /\*\*\*/);
+  assert.doesNotMatch(frame, /◆/);
 });
