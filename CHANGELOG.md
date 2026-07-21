@@ -90,6 +90,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **The package depended on itself.** `@particle-academy/fancy-tui: ^0.3.0` sat
+  in `dependencies`, added by accident in 0.3.1 and shipped in every release
+  since, so installing this package also installed a second, older copy of it
+  nested in your tree. Nothing ever imported it.
+
+  **Nothing to do beyond upgrading** — the stale nested copy disappears on your
+  next install. Worth knowing only if you saw two versions of fancy-tui in a
+  dependency graph and wondered which one you were getting.
+
 - **`Card.Header` blanked the whole card when given an element.** It wrapped
   its children in `<Text bold>`, and a Box inside a Text does not throw — it
   renders the entire subtree as an EMPTY frame, silently, exactly as a bare
