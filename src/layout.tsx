@@ -27,6 +27,19 @@ export function tuiNode(value: ReactNode): ReactNode {
   return value;
 }
 
+/**
+ * `tuiNode()` for slots that are rendered bold.
+ *
+ * A plain string can be wrapped in `<Text bold>`; an ELEMENT cannot — putting a
+ * Box inside a Text blanks the whole subtree exactly as a bare string in a Box
+ * does (verified: the frame comes back empty, with nothing on stderr). So
+ * elements pass through untouched and style themselves.
+ */
+export function tuiBoldNode(value: ReactNode): ReactNode {
+  if (typeof value === "string" || typeof value === "number") return <InkText bold>{value}</InkText>;
+  return tuiNode(value);
+}
+
 export type StackProps = Omit<InkBoxProps, "gap" | "children"> & { gap?: TuiSize | number; children?: ReactNode };
 export function Stack({ gap = "md", children, ...props }: StackProps) {
   const { theme } = useFancyTui();
@@ -63,8 +76,36 @@ export function Panel({ title, tone = "neutral", focused = false, padding = "md"
   </InkBox>;
 }
 
-function CardRoot(props: PanelProps) { return <Panel {...props} />; }
-function CardHeader({ children }: { children?: ReactNode }) { return <InkBox marginBottom={1}><InkText bold>{children}</InkText></InkBox>; }
+/**
+ * `outlined` (default) — a quiet border, the everyday card.
+ * `elevated` — a bold border in the card's tone; the terminal's only honest
+ *   analogue of a shadow, since there is nothing to cast one onto.
+ * `flat` — no border at all, for cards inside an already-bordered container.
+ *
+ * Mirrors `react-fancy`'s Card variants so the same word means the same weight
+ * in both kits.
+ */
+export type CardVariant = "outlined" | "elevated" | "flat";
+export type CardProps = PanelProps & { variant?: CardVariant };
+
+function CardRoot({ variant = "outlined", title, tone = "neutral", focused = false, padding = "md", children, ...props }: CardProps) {
+  const { theme } = useFancyTui();
+  const borderStyle = variant === "flat" ? undefined : focused ? theme.borders.focus : variant === "elevated" ? "bold" : theme.borders.panel;
+  const borderColor = focused ? theme.colors.focus : variant === "outlined" ? theme.colors.border : theme.colors[tone];
+  return <InkBox
+    borderStyle={borderStyle}
+    borderColor={borderStyle ? borderColor : undefined}
+    paddingX={typeof padding === "number" ? padding : theme.spacing[padding]}
+    flexDirection="column"
+    {...props}
+  >
+    {title ? <InkText color={theme.colors[tone]} bold>{title}</InkText> : null}
+    {tuiNode(children)}
+  </InkBox>;
+}
+// Bold the header without nesting a Box inside a Text — that combination made
+// `<Card.Header><Badge/></Card.Header>` render an empty frame.
+function CardHeader({ children }: { children?: ReactNode }) { return <InkBox marginBottom={1}>{tuiBoldNode(children)}</InkBox>; }
 function CardBody({ children }: { children?: ReactNode }) { return <InkBox flexDirection="column">{tuiNode(children)}</InkBox>; }
 function CardFooter({ children }: { children?: ReactNode }) { return <InkBox marginTop={1}>{tuiNode(children)}</InkBox>; }
 export const Card = Object.assign(CardRoot, { Header: CardHeader, Body: CardBody, Footer: CardFooter });
@@ -79,7 +120,20 @@ export function StatusBar({ left, center, right }: StatusBarProps) {
   const { theme } = useFancyTui();
   return <InkBox borderStyle="single" borderColor={theme.colors.border} paddingX={1}><InkBox>{tuiNode(left)}</InkBox><Spacer /><InkBox>{tuiNode(center)}</InkBox><Spacer /><InkBox>{tuiNode(right)}</InkBox></InkBox>;
 }
-export function Screen({ children }: { children?: ReactNode }) { return <InkBox width="100%" flexDirection="column">{tuiNode(children)}</InkBox>; }
+/**
+ * The app shell.
+ *
+ * `fullHeight` claims every row of the terminal. Worth knowing before you skip
+ * it: Ink sizes its output canvas from IN-FLOW layout, and an absolutely
+ * positioned box that would draw past the bottom of that canvas is dropped
+ * without a word — so a centered `Modal` or an edge-anchored `Drawer` renders
+ * NOTHING in an app whose root is three lines tall. `<Screen fullHeight>` is
+ * the one-line fix; `inline` on the overlay is the other.
+ */
+export function Screen({ children, fullHeight = false }: { children?: ReactNode; fullHeight?: boolean }) {
+  const { height } = useTerminalSize();
+  return <InkBox width="100%" height={fullHeight ? height : undefined} flexDirection="column">{tuiNode(children)}</InkBox>;
+}
 export function Responsive({ below, children, fallback = null }: { below: number; children?: ReactNode; fallback?: ReactNode }) {
   const { width } = useTerminalSize(); return <>{width < below ? fallback : children}</>;
 }

@@ -2,8 +2,10 @@ import { useMemo, type ReactNode } from "react";
 import { Box, useFocus, useInput } from "ink";
 import { Button } from "./inputs.js";
 import { Panel, Row, Stack, Text, tuiNode } from "./layout.js";
+import { OverlayBody, OverlayFooter, OverlayHeader, OverlayProvider, OverlaySurface, modalRect, overlayFits, type OverlayBounds, type OverlaySize } from "./overlay.js";
 import { useTuiSurface } from "./registry.js";
-import type { InteractiveProps, Option } from "./types.js";
+import { useTerminalSize } from "./theme.js";
+import type { InteractiveProps, Option, TuiTone } from "./types.js";
 
 export function Tabs({ id, value, onChange, tabs }: InteractiveProps & { value: string; onChange: (id: string) => void; tabs: Array<Option & { content?: ReactNode }> }) {
   const active = tabs.find((x) => x.id === value);
@@ -21,10 +23,79 @@ export function Menu({ id, value, onChange, items, disabled = false, autoFocus =
   return <Stack gap={0}>{items.map((item) => <Text key={item.id} tone={item.id === value ? "primary" : "text"}>{item.id === value ? "› " : "  "}{item.label}</Text>)}</Stack>;
 }
 export const Dropdown = Menu;
-export function Modal({ id, open, title, children, onClose }: InteractiveProps & { open: boolean; title: string; children?: ReactNode; onClose: () => void }) {
-  useInput((_i, key) => { if (open && key.escape) onClose(); }); if (!open) return null;
-  return <Panel title={title} focused><Stack>{children}<Button id={`${id}:close`} onPress={onClose}>Close</Button></Stack></Panel>;
+
+export interface ModalProps extends InteractiveProps {
+  open: boolean;
+  onClose: () => void;
+  /** Shorthand for a `Modal.Header`. */
+  title?: string;
+  /** Overlay size, computed from `bounds`. Default `md`. */
+  size?: OverlaySize;
+  /** Render in flow — the pre-0.6 behaviour — instead of over the layout. */
+  inline?: boolean;
+  /** Region to center inside. Defaults to the terminal size. */
+  bounds?: OverlayBounds;
+  tone?: TuiTone;
+  /** Show the escape hint and the Close button. Default `true`. */
+  closable?: boolean;
+  children?: ReactNode;
 }
+
+/**
+ * A centered dialog painted over the layout.
+ *
+ * Overlay by default since 0.6: absolutely positioned, sized from the terminal,
+ * and made opaque by a fill layer (Ink's padding cells are transparent, so a
+ * panel alone lets the layout bleed through its own margins — see
+ * `src/overlay.tsx`). Pass `inline` for the old in-flow rendering, which is
+ * also what a terminal narrower than `OVERLAY_MIN_WIDTH` / shorter than
+ * `OVERLAY_MIN_HEIGHT` falls back to on its own.
+ *
+ * An overlay only paints on rows the layout already owns — wrap the app in
+ * `<Screen fullHeight>` or the dialog silently renders nothing.
+ */
+function ModalRoot({ id, open, title, children, onClose, size = "md", inline = false, bounds, tone = "neutral", closable = true }: ModalProps) {
+  const { width, height } = useTerminalSize();
+  const regionWidth = bounds?.width ?? width;
+  const regionHeight = bounds?.height ?? height;
+  const region: OverlayBounds = { width: regionWidth, height: regionHeight };
+  const mode = inline || !overlayFits(region) ? "inline" : "overlay";
+
+  useInput((_i, key) => { if (open && key.escape) onClose(); });
+
+  useTuiSurface(useMemo(() => ({
+    id,
+    kind: "modal",
+    label: title ?? id,
+    read: () => ({ open, title, size, mode, bounds: { width: regionWidth, height: regionHeight } }),
+    commands: [{ name: "close", policy: "execute" as const, invoke: onClose }],
+  }), [id, title, open, size, mode, regionWidth, regionHeight, onClose]));
+
+  const overlay = useMemo(() => ({ id, close: onClose }), [id, onClose]);
+  if (!open) return null;
+
+  const close = closable ? <Button id={`${id}:close`} onPress={onClose}>Close</Button> : null;
+
+  return (
+    <OverlayProvider value={overlay}>
+      {mode === "overlay" ? (
+        <OverlaySurface rect={modalRect(region, size)} tone={tone}>
+          {title ? <OverlayHeader closable={closable}>{title}</OverlayHeader> : null}
+          <OverlayBody>{children}</OverlayBody>
+          {close ? <OverlayFooter>{close}</OverlayFooter> : null}
+        </OverlaySurface>
+      ) : (
+        <Panel title={title} focused><Stack>{children}{close}</Stack></Panel>
+      )}
+    </OverlayProvider>
+  );
+}
+
+export const Modal = Object.assign(ModalRoot, {
+  Header: OverlayHeader,
+  Body: OverlayBody,
+  Footer: OverlayFooter,
+});
 export interface ToastData { id: string; message: string; tone?: "success" | "warning" | "danger" | "info"; }
 export function Toast({ items }: { items: readonly ToastData[] }) { return <Stack gap={0}>{items.map((item) => <Text key={item.id} tone={item.tone ?? "info"}>● {item.message}</Text>)}</Stack>; }
 export function Command({ id, query, onQueryChange, commands, onSelect }: InteractiveProps & { query: string; onQueryChange: (value: string) => void; commands: Option[]; onSelect: (id: string) => void }) {

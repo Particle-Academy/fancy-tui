@@ -4,6 +4,7 @@ export * from "./registry.js";
 export * from "./layout.js";
 export * from "./display.js";
 export * from "./inputs.js";
+export * from "./overlay.js";
 export * from "./navigation.js";
 export * from "./data.js";
 export * from "./content.js";

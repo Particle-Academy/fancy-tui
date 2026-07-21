@@ -21,6 +21,7 @@ import { Box, Card, Column, Header, Panel, Responsive, Row, Screen, Separator, S
 import { ActivityIndicator, Avatar, Badge, Callout, Profile, Progress, Skeleton, Spinner, Timeline } from "../src/display.js";
 import { Autocomplete, Button, Checkbox, CheckboxGroup, DisplayValue, Field, Form, Input, MultilineInput, MultiSwitch, Pillbox, RadioGroup, Select, Slider, Switch } from "../src/inputs.js";
 import { Accordion, Breadcrumbs, Command, Menu, Modal, Pagination, Tabs, Toast } from "../src/navigation.js";
+import { Drawer } from "../src/overlay.js";
 import { FileBrowser, Table, TreeNav } from "../src/data.js";
 import { CodeView, LiveRegion, Markdown, MessageList, StaticList, ToolCall } from "../src/content.js";
 
@@ -107,6 +108,11 @@ const entries: Entry[] = [
     slug: "card", name: "Card", group: "Layout",
     source: `<Card title="Deploy">\n  <Card.Header>Production</Card.Header>\n  <Card.Body><Text>2 pending approvals.</Text></Card.Body>\n  <Card.Footer><KeyHint keys={["Enter"]} label="approve" /></Card.Footer>\n</Card>`,
     node: <Card title="Deploy"><Card.Header>Production</Card.Header><Card.Body><Text>2 pending approvals.</Text></Card.Body><Card.Footer><KeyHint keys={["Enter"]} label="approve" /></Card.Footer></Card>,
+  },
+  {
+    slug: "card-variants", name: "Card variants", group: "Layout",
+    source: `<Row gap="sm">\n  <Card variant="outlined"><Text>outlined</Text></Card>\n  <Card variant="elevated"><Text>elevated</Text></Card>\n  <Card variant="flat"><Text>flat</Text></Card>\n</Row>`,
+    node: <Row gap="sm"><Card variant="outlined"><Text>outlined</Text></Card><Card variant="elevated"><Text>elevated</Text></Card><Card variant="flat"><Text>flat</Text></Card></Row>,
   },
   {
     slug: "header", name: "Header", group: "Layout",
@@ -307,9 +313,39 @@ const entries: Entry[] = [
     node: <Menu id="actions" value="test" onChange={noop} items={options} />,
   },
   {
+    // Captured inside an explicitly sized Box with matching `bounds`: an
+    // overlay paints only on rows the layout owns, and the capture harness'
+    // wrapper is content-height. In an app that role is played by
+    // `<Screen fullHeight>`, which is what the source shows.
     slug: "modal", name: "Modal", group: "Navigation",
-    source: `<Modal id="confirm" open title="Deploy to production?" onClose={close}>\n  <Text>This action requires confirmation.</Text>\n</Modal>`,
-    node: <Modal id="confirm" open title="Deploy to production?" onClose={noop}><Text>This action requires confirmation.</Text></Modal>,
+    source: `<Screen fullHeight>\n  <Header title="Deploy agent" status="connected" />\n  <Text>2 approvals pending · main@8f2c1d</Text>\n\n  <Modal id="confirm" open title="Deploy to production?" onClose={close}>\n    <Text>This replaces 3 running services.</Text>\n  </Modal>\n</Screen>`,
+    node: (
+      <Box width={COLUMNS} height={12} flexDirection="column">
+        <Header title="Deploy agent" status="connected" />
+        <Text>2 approvals pending · main@8f2c1d</Text>
+        <Text tone="muted">worker-01 · worker-02 · worker-03 · worker-04 · idle</Text>
+        <Text tone="muted">queued: compile, integration, package, publish, notify</Text>
+        <Modal id="confirm" open title="Deploy to production?" bounds={{ width: COLUMNS, height: 12 }} onClose={noop}>
+          <Text>This replaces 3 running services.</Text>
+        </Modal>
+      </Box>
+    ),
+  },
+  {
+    slug: "drawer", name: "Drawer", group: "Navigation",
+    source: `<Drawer id="filters" open side="right" size="md" title="Filters" onClose={close}>\n  <Drawer.Body>\n    <Text>state: failing</Text>\n    <Text>branch: main</Text>\n  </Drawer.Body>\n  <Drawer.Footer><Text tone="muted">enter apply</Text></Drawer.Footer>\n</Drawer>`,
+    node: (
+      <Box width={COLUMNS} height={10} flexDirection="column">
+        <Header title="Jobs" status="3 running" />
+        <Text tone="muted">compile · integration · package · publish · notify</Text>
+        <Text tone="muted">worker-01 · worker-02 · worker-03 · worker-04 · idle</Text>
+        <Text tone="muted">retries: 2 · queue depth: 11 · oldest: 4m12s</Text>
+        <Drawer id="filters" open side="right" size="md" title="Filters" bounds={{ width: COLUMNS, height: 10 }} onClose={noop}>
+          <Drawer.Body><Text>state: failing</Text><Text>branch: main</Text></Drawer.Body>
+          <Drawer.Footer><Text tone="muted">enter apply</Text></Drawer.Footer>
+        </Drawer>
+      </Box>
+    ),
   },
   {
     slug: "command", name: "Command", group: "Navigation",

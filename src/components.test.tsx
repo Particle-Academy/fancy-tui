@@ -4,7 +4,7 @@ import React from "react";
 import { cleanup, render } from "ink-testing-library";
 import stringWidth from "string-width";
 import { FancyTuiProvider } from "./theme.js";
-import { Header, Hero, Panel, Responsive, Row, Screen, Stack, StatusBar, Text } from "./layout.js";
+import { Card, Header, Hero, Panel, Responsive, Row, Screen, Stack, StatusBar, Text } from "./layout.js";
 import { MessageList, LiveRegion } from "./content.js";
 import { Input, MultilineInput } from "./inputs.js";
 
@@ -158,6 +158,47 @@ it("renders mixed string and element children", async () => {
   const frame = view.lastFrame() ?? "";
   assert.match(frame, /plain/);
   assert.match(frame, /element/);
+});
+
+// ── Card ────────────────────────────────────────────────────────────────────
+
+it("draws a card border per variant, and none at all for flat", async () => {
+  const frameFor = (node: React.ReactElement) => {
+    const view = render(<FancyTuiProvider>{node}</FancyTuiProvider>);
+    const frame = view.lastFrame() ?? "";
+    cleanup();
+    return frame;
+  };
+
+  assert.match(frameFor(<Card variant="outlined"><Text>body</Text></Card>), /[╭╮╰╯]/);
+  assert.match(frameFor(<Card variant="elevated"><Text>body</Text></Card>), /[┏┓┗┛]/);
+  const flat = frameFor(<Card variant="flat"><Text>body</Text></Card>);
+  assert.match(flat, /body/);
+  assert.doesNotMatch(flat, /[─│╭╮╰╯┏┓┗┛]/);
+});
+
+it("renders a Card.Header holding an element, not just a string", async () => {
+  // `<InkText bold>{children}</InkText>` around an element nests a Box inside a
+  // Text, which does not throw — it renders the WHOLE subtree as an empty
+  // frame, silently. Same failure as a bare string inside a Box.
+  const view = render(
+    <FancyTuiProvider>
+      <Card>
+        <Card.Header><Row><Text>Production</Text></Row></Card.Header>
+        <Card.Body><Text>2 pending approvals.</Text></Card.Body>
+      </Card>
+    </FancyTuiProvider>,
+  );
+  await settled();
+  const frame = view.lastFrame() ?? "";
+  assert.match(frame, /Production/);
+  assert.match(frame, /2 pending approvals\./);
+});
+
+it("still renders a plain-string Card.Header", async () => {
+  const view = render(<FancyTuiProvider><Card><Card.Header>Production</Card.Header></Card></FancyTuiProvider>);
+  await settled();
+  assert.match(view.lastFrame() ?? "", /Production/);
 });
 
 // ── Hero (#startup screen) ──────────────────────────────────────────────────

@@ -82,6 +82,14 @@
       "columns": 68
     },
     {
+      "slug": "card-variants",
+      "name": "Card variants",
+      "group": "Layout",
+      "source": "<Row gap=\"sm\">\n  <Card variant=\"outlined\"><Text>outlined</Text></Card>\n  <Card variant=\"elevated\"><Text>elevated</Text></Card>\n  <Card variant=\"flat\"><Text>flat</Text></Card>\n</Row>",
+      "frame": "\u001b[90m╭──────────╮\u001b[39m \u001b[90m┏━━━━━━━━━━┓\u001b[39m  \u001b[37mflat\u001b[39m\n\u001b[90m│\u001b[39m \u001b[37moutlined\u001b[39m \u001b[90m│\u001b[39m \u001b[90m┃\u001b[39m \u001b[37melevated\u001b[39m \u001b[90m┃\u001b[39m\n\u001b[90m╰──────────╯\u001b[39m \u001b[90m┗━━━━━━━━━━┛\u001b[39m",
+      "columns": 68
+    },
+    {
       "slug": "header",
       "name": "Header",
       "group": "Layout",
@@ -389,8 +397,16 @@
       "slug": "modal",
       "name": "Modal",
       "group": "Navigation",
-      "source": "<Modal id=\"confirm\" open title=\"Deploy to production?\" onClose={close}>\n  <Text>This action requires confirmation.</Text>\n</Modal>",
-      "frame": "\u001b[36m╔══════════════════════════════════════════════════════════════════╗\u001b[39m\n\u001b[36m║\u001b[39m \u001b[1m\u001b[90mDeploy to production?\u001b[39m\u001b[22m                                            \u001b[36m║\u001b[39m\n\u001b[36m║\u001b[39m \u001b[37mThis action requires confirmation.\u001b[39m                               \u001b[36m║\u001b[39m\n\u001b[36m║\u001b[39m                                                                  \u001b[36m║\u001b[39m\n\u001b[36m║\u001b[39m \u001b[7m\u001b[36m[ Close ]\u001b[39m\u001b[27m                                                        \u001b[36m║\u001b[39m\n\u001b[36m╚══════════════════════════════════════════════════════════════════╝\u001b[39m",
+      "source": "<Screen fullHeight>\n  <Header title=\"Deploy agent\" status=\"connected\" />\n  <Text>2 approvals pending · main@8f2c1d</Text>\n\n  <Modal id=\"confirm\" open title=\"Deploy to production?\" onClose={close}>\n    <Text>This replaces 3 running services.</Text>\n  </Modal>\n</Screen>",
+      "frame": "\u001b[1m\u001b[36mDeploy agent\u001b[39m\u001b[22m                                               connected\n\u001b[37m2 approvals pending · main@8f2c1d\u001b[39m\n\u001b[90mworker-01 · wor╭───────────────────────────────────╮\u001b[39m\n\u001b[90mqueued: compile│\u001b[39m \u001b[1mDeploy to production?\u001b[22m       \u001b[90m[\u001b[1m\u001b[36mesc\u001b[22m\u001b[90m]\u001b[39m \u001b[90m│fy\u001b[39m\n               \u001b[90m│\u001b[39m \u001b[37mThis replaces 3 running services.\u001b[39m \u001b[90m│\u001b[39m\n               \u001b[90m│\u001b[39m                                   \u001b[90m│\u001b[39m\n               \u001b[90m│\u001b[39m                                   \u001b[90m│\u001b[39m\n               \u001b[90m│\u001b[39m                         \u001b[7m\u001b[36m[ Close ]\u001b[39m\u001b[27m \u001b[90m│\u001b[39m\n               \u001b[90m╰───────────────────────────────────╯\u001b[39m\n\n\n",
+      "columns": 68
+    },
+    {
+      "slug": "drawer",
+      "name": "Drawer",
+      "group": "Navigation",
+      "source": "<Drawer id=\"filters\" open side=\"right\" size=\"md\" title=\"Filters\" onClose={close}>\n  <Drawer.Body>\n    <Text>state: failing</Text>\n    <Text>branch: main</Text>\n  </Drawer.Body>\n  <Drawer.Footer><Text tone=\"muted\">enter apply</Text></Drawer.Footer>\n</Drawer>",
+      "frame": "\u001b[1m\u001b[36mJobs\u001b[39m\u001b[22m                                     \u001b[90m╭─────────────────────────╮\u001b[39m\n\u001b[90mcompile · integration · package · publish│\u001b[39m \u001b[1mFilters\u001b[22m           \u001b[90m[\u001b[1m\u001b[36mesc\u001b[22m\u001b[90m]\u001b[39m \u001b[90m│\u001b[39m\n\u001b[90mworker-01 · worker-02 · worker-03 · worke│\u001b[39m \u001b[37mstate: failing\u001b[39m          \u001b[90m│\u001b[39m\n\u001b[90mretries: 2 · queue depth: 11 · oldest: 4m│\u001b[39m \u001b[37mbranch: main\u001b[39m            \u001b[90m│\u001b[39m\n                                         \u001b[90m│\u001b[39m                         \u001b[90m│\u001b[39m\n                                         \u001b[90m│\u001b[39m                         \u001b[90m│\u001b[39m\n                                         \u001b[90m│\u001b[39m                         \u001b[90m│\u001b[39m\n                                         \u001b[90m│\u001b[39m                         \u001b[90m│\u001b[39m\n                                         \u001b[90m│\u001b[39m             \u001b[90menter apply\u001b[39m \u001b[90m│\u001b[39m\n                                         \u001b[90m╰─────────────────────────╯\u001b[39m",
       "columns": 68
     },
     {
