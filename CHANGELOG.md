@@ -10,6 +10,46 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.7.0] — 2026-07-21
+
+### Added
+
+- **`@particle-academy/fancy-tui/showcase`** — the showcase example table, now
+  an importable module instead of a build-script detail. Every documented
+  component ships with a LIVE example node:
+
+  ```tsx
+  import { SHOWCASE_EXAMPLES, findShowcaseExample } from "@particle-academy/fancy-tui/showcase";
+
+  const badge = findShowcaseExample("badge");
+  // render it inline in your own Ink tree — it is a real component, not a picture
+  <Box width={40} overflow="hidden">{badge?.node}</Box>
+  ```
+
+  Exports `SHOWCASE_EXAMPLES` (`{ slug, name, group, source, node, columns? }`),
+  `SHOWCASE_EXAMPLES_BY_SLUG`, `findShowcaseExample(slug)`, `SHOWCASE_COLUMNS`,
+  and the `ShowcaseExample` type.
+
+  This is what a docs host in Node needs: a captured ANSI frame is a photograph
+  of a component at one fixed width, so a terminal UI embedding it can only
+  reproduce someone else's layout. With the nodes exported, the host renders the
+  component itself — Yoga lays it out at the reader's real terminal size.
+
+  Live nodes are not free-floating: they size themselves from the nearest
+  `FancyTuiProvider` and can be taller or wider than the space a host has.
+  Wrap them in a fixed-size `<Box overflow="hidden">` (and, if the pane is
+  narrower than the terminal, a nested `<FancyTuiProvider width={…}>`) so a tall
+  example clips instead of pushing the host's own chrome off screen.
+
+### Changed
+
+- `showcase/previews.json` is now a DERIVED artifact rather than the source of
+  truth. `scripts/showcase.tsx` imports the same table and captures it exactly
+  as before, so non-Node consumers (the web gallery) are unaffected — the file's
+  contents, key order, and all 62 entries are byte-identical. **No action
+  needed:** `@particle-academy/fancy-tui/showcase/previews.json` still resolves
+  and still has the same shape.
+
 ## [0.6.0] — 2026-07-21
 
 ### Added
@@ -169,6 +209,7 @@ other component — real Ink renders, never hand-authored art.
 `Hero` ships with a showcase capture like every other component, so its docs
 preview is a real Ink render rather than art.
 
-[Unreleased]: https://github.com/Particle-Academy/fancy-tui/compare/v0.6.0...HEAD
+[Unreleased]: https://github.com/Particle-Academy/fancy-tui/compare/v0.7.0...HEAD
+[0.7.0]: https://github.com/Particle-Academy/fancy-tui/compare/v0.6.0...v0.7.0
 [0.6.0]: https://github.com/Particle-Academy/fancy-tui/compare/v0.5.0...v0.6.0
 [0.5.0]: https://github.com/Particle-Academy/fancy-tui/compare/v0.4.0...v0.5.0
