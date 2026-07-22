@@ -1,6 +1,6 @@
 {
   "name": "@particle-academy/fancy-tui",
-  "version": "0.7.0",
+  "version": "0.8.0",
   "description": "Ink components for Human+ terminal applications",
   "repository": {
     "type": "git",

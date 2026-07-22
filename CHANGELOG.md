@@ -10,6 +10,49 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.8.0] — 2026-07-22
+
+### Added
+
+- **`ShowcaseExample.interactive`** — a boolean on every entry in
+  `SHOWCASE_EXAMPLES`, `true` when the example responds to keyboard input on its
+  own. A host that renders one example persistently uses it to decide which
+  previews are worth focusing and forwarding keystrokes to; it is unset on the
+  purely visual examples and the two `scrollback` lists.
+
+### Changed
+
+- **The interactive showcase examples are now self-contained stateful demos**
+  rather than frozen snapshots. Previously an interactive `node` was pinned to a
+  constant `value` with a no-op handler
+  (`<Select value="test" onChange={noop} />`), so a host that rendered it live
+  and fed it keys saw nothing change. Each is now a small component that owns its
+  state with `useState` and passes a REAL `onChange` / `onPress` / `onClose`, so
+  the accordion opens, the input types, the select moves, the slider slides, the
+  modal and drawer close on escape. 22 examples in all: Accordion, Autocomplete,
+  Button, Checkbox, CheckboxGroup, Command, Composer, Drawer, Field, Form, Input,
+  Menu, Modal, MultilineInput, MultiSwitch, Pagination, Pillbox, RadioGroup,
+  Select, Slider, Switch, Tabs.
+
+  Each interactive control auto-focuses (the `autoFocus` default on
+  `InteractiveProps`), so an example rendered alone is ready for input
+  immediately, with no focus competition.
+
+  **No action needed for the web gallery.** A stateful example renders its
+  INITIAL state, which equals the frame captured before, so
+  `showcase/previews.json` is byte-for-byte unchanged — same contents, key order,
+  and all 62 entries. The `source` snippet beside each example was already
+  written in the idiomatic controlled `value`+`onChange` form a real user writes,
+  and is unchanged; the stateful wrapper is demo scaffolding, not shown.
+
+### Notes
+
+- The controlled-but-keyboard-inert display components — `Table`, `TreeNav`,
+  `FileBrowser`, `Sidebar` — are deliberately NOT flagged interactive. They take
+  controlled props for agent and programmatic use but call neither `useInput` nor
+  `useFocus`, so a keystroke does not move them; they respond to agent commands
+  through the surface registry instead. Their examples stay frozen.
+
 ## [0.7.0] — 2026-07-21
 
 ### Added
@@ -209,7 +252,8 @@ other component — real Ink renders, never hand-authored art.
 `Hero` ships with a showcase capture like every other component, so its docs
 preview is a real Ink render rather than art.
 
-[Unreleased]: https://github.com/Particle-Academy/fancy-tui/compare/v0.7.0...HEAD
+[Unreleased]: https://github.com/Particle-Academy/fancy-tui/compare/v0.8.0...HEAD
+[0.8.0]: https://github.com/Particle-Academy/fancy-tui/compare/v0.7.0...v0.8.0
 [0.7.0]: https://github.com/Particle-Academy/fancy-tui/compare/v0.6.0...v0.7.0
 [0.6.0]: https://github.com/Particle-Academy/fancy-tui/compare/v0.5.0...v0.6.0
 [0.5.0]: https://github.com/Particle-Academy/fancy-tui/compare/v0.4.0...v0.5.0

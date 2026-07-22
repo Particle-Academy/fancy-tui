@@ -20,7 +20,7 @@
  * had box borders of 79/78/77 columns inside a single box, because a human
  * counted dashes. Rendering the actual component makes misalignment impossible.
  */
-import React, { type ReactNode } from "react";
+import React, { useState, type ReactNode } from "react";
 
 import { Box, Card, Column, Header, Panel, Responsive, Row, Screen, Separator, Sidebar, Spacer, Stack, StatusBar, Text, Heading, Hero, KeyHint } from "./layout.js";
 import { ActivityIndicator, Avatar, Badge, Callout, Profile, Progress, Skeleton, Spinner, Timeline } from "./display.js";
@@ -60,6 +60,28 @@ export type ShowcaseExample = {
    * incompatible with a pane that repaints a fixed-size screen.
    */
   scrollback?: boolean;
+  /**
+   * The example responds to keyboard input on its own.
+   *
+   * When `true`, `node` is a self-contained stateful component: it owns its
+   * `value` with `useState` and passes a REAL `onChange`, so a host that renders
+   * it persistently and forwards keystrokes gets a live control — the accordion
+   * actually opens, the input actually types — instead of a frozen snapshot with
+   * a no-op handler. The interactive controls auto-focus (see `autoFocus` on
+   * `InteractiveProps`), so an example rendered on its own is ready for input
+   * immediately, with no focus competition.
+   *
+   * Unset/`false` marks a purely visual example (Badge, Separator, Heading, Hero,
+   * Card, …), a display component with controlled props but no keyboard handling
+   * of its own (Table, TreeNav, FileBrowser, Sidebar — they respond to agent
+   * commands, not keystrokes), and the two `scrollback` lists, which have nothing
+   * to type into.
+   *
+   * Orthogonal to the capture: a stateful example renders its INITIAL state, so
+   * `showcase/previews.json` is byte-identical to the frozen version. This flag
+   * only tells a live host which previews are worth focusing and feeding input.
+   */
+  interactive?: boolean;
 };
 
 /** Layout width every captured preview is normalised to — matches the docs card. */
@@ -71,6 +93,173 @@ const options = [
   { id: "test", label: "Test" },
   { id: "deploy", label: "Deploy" },
 ];
+
+/*
+ * Interactive example nodes.
+ *
+ * Each is a small self-contained component that owns its state with `useState`
+ * and passes a REAL `onChange`/`onPress`/`onClose`, so it responds to input on
+ * its own — the whole point of a live example over a captured frame. The
+ * `source` snippet beside each shows the idiomatic controlled `value`+`onChange`
+ * a real user would write; these wrappers are the demo scaffolding.
+ *
+ * Initial state MIRRORS the frozen values these replaced, so every captured
+ * preview in `showcase/previews.json` renders byte-for-byte the same first
+ * frame. Change a starting value and you change the capture.
+ */
+
+function ButtonDemo() {
+  // A Button's press is an external action; the buttons still respond to Tab,
+  // which moves focus between them (the `inverse` cell shifts visibly).
+  const [, setPresses] = useState(0);
+  return (
+    <Row gap="md">
+      <Button id="run" onPress={() => setPresses((n) => n + 1)}>Run</Button>
+      <Button id="stop" tone="danger" onPress={() => setPresses(0)} autoFocus={false}>Stop</Button>
+    </Row>
+  );
+}
+
+function FormDemo() {
+  const [branch, setBranch] = useState("main");
+  return <Form><Field label="Branch"><Input id="branch" value={branch} onChange={setBranch} /></Field></Form>;
+}
+
+function FieldDemo() {
+  const [token, setToken] = useState("");
+  return <Field label="Token" description="Stored in your keychain." error="Required"><Input id="token" value={token} onChange={setToken} placeholder="paste token" /></Field>;
+}
+
+function InputDemo() {
+  const [value, setValue] = useState("main");
+  return <Input id="branch" value={value} onChange={setValue} placeholder="branch name" />;
+}
+
+function MultilineInputDemo() {
+  const [value, setValue] = useState("Summarize the failing build");
+  return <MultilineInput id="prompt" value={value} onChange={setValue} placeholder="Message…" />;
+}
+
+function CheckboxDemo() {
+  const [checked, setChecked] = useState(true);
+  return <Checkbox id="ci" checked={checked} onChange={setChecked} label="Run in CI" />;
+}
+
+function CheckboxGroupDemo() {
+  const [value, setValue] = useState<string[]>(["build"]);
+  return <CheckboxGroup id="steps" value={value} onChange={setValue} options={options} />;
+}
+
+function RadioGroupDemo() {
+  const [value, setValue] = useState("test");
+  return <RadioGroup id="env" value={value} onChange={setValue} options={options} />;
+}
+
+function SwitchDemo() {
+  const [on, setOn] = useState(true);
+  return <Switch id="verbose" checked={on} onChange={setOn} label="Verbose" />;
+}
+
+function MultiSwitchDemo() {
+  const [value, setValue] = useState("test");
+  return <MultiSwitch id="mode" value={value} onChange={setValue} options={options} />;
+}
+
+function SelectDemo() {
+  const [value, setValue] = useState("deploy");
+  return <Select id="target" value={value} onChange={setValue} options={options} />;
+}
+
+function AutocompleteDemo() {
+  const [query, setQuery] = useState("te");
+  const [value, setValue] = useState("test");
+  return <Autocomplete id="cmd" query={query} onQueryChange={setQuery} value={value} onChange={setValue} options={options} />;
+}
+
+function PillboxDemo() {
+  const [value, setValue] = useState<string[]>(["ci", "nightly"]);
+  const [draft, setDraft] = useState("");
+  return <Pillbox id="tags" value={value} onChange={setValue} inputValue={draft} onInputChange={setDraft} />;
+}
+
+function SliderDemo() {
+  const [value, setValue] = useState(60);
+  return <Slider id="threshold" value={value} onChange={setValue} />;
+}
+
+function TabsDemo() {
+  const [value, setValue] = useState("test");
+  return <Tabs id="views" value={value} onChange={setValue} tabs={options} />;
+}
+
+function AccordionDemo() {
+  const [open, setOpen] = useState<string[]>(["build"]);
+  return (
+    <Accordion
+      id="sections"
+      value={open}
+      onChange={setOpen}
+      items={[
+        { id: "build", label: "Build", content: "Compiles the workspace." },
+        { id: "test", label: "Test", content: "Runs the suite." },
+      ]}
+    />
+  );
+}
+
+function PaginationDemo() {
+  const [page, setPage] = useState(2);
+  return <Pagination id="jobs" page={page} pages={5} onChange={setPage} />;
+}
+
+function MenuDemo() {
+  const [value, setValue] = useState("test");
+  return <Menu id="actions" value={value} onChange={setValue} items={options} />;
+}
+
+function CommandDemo() {
+  // `Command` drives its own filtered list off `query`; the command buttons
+  // respond to Tab and select via `onSelect`.
+  const [query, setQuery] = useState("");
+  const [, setSelected] = useState<string | null>(null);
+  return <Command id="palette" query={query} onQueryChange={setQuery} commands={options} onSelect={setSelected} />;
+}
+
+function ModalDemo() {
+  const [open, setOpen] = useState(true);
+  return (
+    <Box width={SHOWCASE_COLUMNS} height={12} flexDirection="column">
+      <Header title="Deploy agent" status="connected" />
+      <Text>2 approvals pending · main@8f2c1d</Text>
+      <Text tone="muted">worker-01 · worker-02 · worker-03 · worker-04 · idle</Text>
+      <Text tone="muted">queued: compile, integration, package, publish, notify</Text>
+      <Modal id="confirm" open={open} title="Deploy to production?" bounds={{ width: SHOWCASE_COLUMNS, height: 12 }} onClose={() => setOpen(false)}>
+        <Text>This replaces 3 running services.</Text>
+      </Modal>
+    </Box>
+  );
+}
+
+function DrawerDemo() {
+  const [open, setOpen] = useState(true);
+  return (
+    <Box width={SHOWCASE_COLUMNS} height={10} flexDirection="column">
+      <Header title="Jobs" status="3 running" />
+      <Text tone="muted">compile · integration · package · publish · notify</Text>
+      <Text tone="muted">worker-01 · worker-02 · worker-03 · worker-04 · idle</Text>
+      <Text tone="muted">retries: 2 · queue depth: 11 · oldest: 4m12s</Text>
+      <Drawer id="filters" open={open} side="right" size="md" title="Filters" bounds={{ width: SHOWCASE_COLUMNS, height: 10 }} onClose={() => setOpen(false)}>
+        <Drawer.Body><Text>state: failing</Text><Text>branch: main</Text></Drawer.Body>
+        <Drawer.Footer><Text tone="muted">enter apply</Text></Drawer.Footer>
+      </Drawer>
+    </Box>
+  );
+}
+
+function ComposerDemo() {
+  const [value, setValue] = useState("");
+  return <MultilineInput id="prompt" value={value} onChange={setValue} placeholder="Message…" />;
+}
 
 export const SHOWCASE_EXAMPLES: ShowcaseExample[] = [
   // ── Layout ────────────────────────────────────────────────────────────────
@@ -240,17 +429,17 @@ export const SHOWCASE_EXAMPLES: ShowcaseExample[] = [
   {
     slug: "button", name: "Button", group: "Inputs",
     source: `<Row gap="md">\n  <Button id="run" onPress={run}>Run</Button>\n  <Button id="stop" tone="danger" onPress={stop}>Stop</Button>\n</Row>`,
-    node: <Row gap="md"><Button id="run" onPress={noop}>Run</Button><Button id="stop" tone="danger" onPress={noop} autoFocus={false}>Stop</Button></Row>,
+    node: <ButtonDemo />, interactive: true,
   },
   {
     slug: "form", name: "Form", group: "Inputs",
     source: `<Form>\n  <Field label="Branch"><Input id="branch" value={value} onChange={setValue} /></Field>\n</Form>`,
-    node: <Form><Field label="Branch"><Input id="branch" value="main" onChange={noop} /></Field></Form>,
+    node: <FormDemo />, interactive: true,
   },
   {
     slug: "field", name: "Field", group: "Inputs",
     source: `<Field label="Token" description="Stored in your keychain." error="Required">\n  <Input id="token" value="" onChange={setValue} />\n</Field>`,
-    node: <Field label="Token" description="Stored in your keychain." error="Required"><Input id="token" value="" onChange={noop} placeholder="paste token" /></Field>,
+    node: <FieldDemo />, interactive: true,
   },
   {
     slug: "display-value", name: "DisplayValue", group: "Inputs",
@@ -260,69 +449,69 @@ export const SHOWCASE_EXAMPLES: ShowcaseExample[] = [
   {
     slug: "input", name: "Input", group: "Inputs",
     source: `<Input id="branch" value={value} onChange={setValue} placeholder="branch name" />`,
-    node: <Input id="branch" value="main" onChange={noop} placeholder="branch name" />,
+    node: <InputDemo />, interactive: true,
   },
   {
     slug: "multiline-input", name: "MultilineInput", group: "Inputs",
     source: `<MultilineInput id="prompt" value={value} onChange={setValue} placeholder="Message…" />`,
-    node: <MultilineInput id="prompt" value="Summarize the failing build" onChange={noop} placeholder="Message…" />,
+    node: <MultilineInputDemo />, interactive: true,
   },
   {
     slug: "checkbox", name: "Checkbox", group: "Inputs",
     source: `<Checkbox id="ci" checked={checked} onChange={setChecked} label="Run in CI" />`,
-    node: <Checkbox id="ci" checked onChange={noop} label="Run in CI" />,
+    node: <CheckboxDemo />, interactive: true,
   },
   {
     slug: "checkbox-group", name: "CheckboxGroup", group: "Inputs",
     source: `<CheckboxGroup id="steps" value={["build"]} onChange={setSteps} options={options} />`,
-    node: <CheckboxGroup id="steps" value={["build"]} onChange={noop} options={options} />,
+    node: <CheckboxGroupDemo />, interactive: true,
   },
   {
     slug: "radio-group", name: "RadioGroup", group: "Inputs",
     source: `<RadioGroup id="env" value="test" onChange={setEnv} options={options} />`,
-    node: <RadioGroup id="env" value="test" onChange={noop} options={options} />,
+    node: <RadioGroupDemo />, interactive: true,
   },
   {
     slug: "switch", name: "Switch", group: "Inputs",
     source: `<Switch id="verbose" checked={on} onChange={setOn} label="Verbose" />`,
-    node: <Switch id="verbose" checked onChange={noop} label="Verbose" />,
+    node: <SwitchDemo />, interactive: true,
   },
   {
     slug: "multi-switch", name: "MultiSwitch", group: "Inputs",
     source: `<MultiSwitch id="mode" value="test" onChange={setMode} options={options} />`,
-    node: <MultiSwitch id="mode" value="test" onChange={noop} options={options} />,
+    node: <MultiSwitchDemo />, interactive: true,
   },
   {
     slug: "select", name: "Select", group: "Inputs",
     source: `<Select id="target" value="deploy" onChange={setTarget} options={options} />`,
-    node: <Select id="target" value="deploy" onChange={noop} options={options} />,
+    node: <SelectDemo />, interactive: true,
   },
   {
     slug: "autocomplete", name: "Autocomplete", group: "Inputs",
     source: `<Autocomplete id="cmd" query={query} onQueryChange={setQuery} value={value} onChange={setValue} options={options} />`,
-    node: <Autocomplete id="cmd" query="te" onQueryChange={noop} value="test" onChange={noop} options={options} />,
+    node: <AutocompleteDemo />, interactive: true,
   },
   {
     slug: "pillbox", name: "Pillbox", group: "Inputs",
     source: `<Pillbox id="tags" value={["ci", "nightly"]} onChange={setTags} inputValue={draft} onInputChange={setDraft} />`,
-    node: <Pillbox id="tags" value={["ci", "nightly"]} onChange={noop} inputValue="" onInputChange={noop} />,
+    node: <PillboxDemo />, interactive: true,
   },
   {
     slug: "slider", name: "Slider", group: "Inputs",
     source: `<Slider id="threshold" value={60} onChange={setValue} />`,
-    node: <Slider id="threshold" value={60} onChange={noop} />,
+    node: <SliderDemo />, interactive: true,
   },
 
   // ── Navigation ────────────────────────────────────────────────────────────
   {
     slug: "tabs", name: "Tabs", group: "Navigation",
     source: `<Tabs id="views" value="test" onChange={setTab} tabs={options} />`,
-    node: <Tabs id="views" value="test" onChange={noop} tabs={options} />,
+    node: <TabsDemo />, interactive: true,
   },
   {
     slug: "accordion", name: "Accordion", group: "Navigation",
     source: `<Accordion id="sections" value={["build"]} onChange={setOpen} items={[\n  { id: "build", label: "Build", content: "Compiles the workspace." },\n]} />`,
-    node: <Accordion id="sections" value={["build"]} onChange={noop} items={[{ id: "build", label: "Build", content: "Compiles the workspace." }, { id: "test", label: "Test", content: "Runs the suite." }]} />,
+    node: <AccordionDemo />, interactive: true,
   },
   {
     slug: "breadcrumbs", name: "Breadcrumbs", group: "Navigation",
@@ -332,12 +521,12 @@ export const SHOWCASE_EXAMPLES: ShowcaseExample[] = [
   {
     slug: "pagination", name: "Pagination", group: "Navigation",
     source: `<Pagination id="jobs" page={2} pages={5} onChange={setPage} />`,
-    node: <Pagination id="jobs" page={2} pages={5} onChange={noop} />,
+    node: <PaginationDemo />, interactive: true,
   },
   {
     slug: "menu", name: "Menu", group: "Navigation",
     source: `<Menu id="actions" value="test" onChange={setValue} items={options} />`,
-    node: <Menu id="actions" value="test" onChange={noop} items={options} />,
+    node: <MenuDemo />, interactive: true,
   },
   {
     // Composed inside an explicitly sized Box with matching `bounds`: an overlay
@@ -346,38 +535,17 @@ export const SHOWCASE_EXAMPLES: ShowcaseExample[] = [
     // `<Screen fullHeight>`, which is what the source shows.
     slug: "modal", name: "Modal", group: "Navigation",
     source: `<Screen fullHeight>\n  <Header title="Deploy agent" status="connected" />\n  <Text>2 approvals pending · main@8f2c1d</Text>\n\n  <Modal id="confirm" open title="Deploy to production?" onClose={close}>\n    <Text>This replaces 3 running services.</Text>\n  </Modal>\n</Screen>`,
-    node: (
-      <Box width={SHOWCASE_COLUMNS} height={12} flexDirection="column">
-        <Header title="Deploy agent" status="connected" />
-        <Text>2 approvals pending · main@8f2c1d</Text>
-        <Text tone="muted">worker-01 · worker-02 · worker-03 · worker-04 · idle</Text>
-        <Text tone="muted">queued: compile, integration, package, publish, notify</Text>
-        <Modal id="confirm" open title="Deploy to production?" bounds={{ width: SHOWCASE_COLUMNS, height: 12 }} onClose={noop}>
-          <Text>This replaces 3 running services.</Text>
-        </Modal>
-      </Box>
-    ),
+    node: <ModalDemo />, interactive: true,
   },
   {
     slug: "drawer", name: "Drawer", group: "Navigation",
     source: `<Drawer id="filters" open side="right" size="md" title="Filters" onClose={close}>\n  <Drawer.Body>\n    <Text>state: failing</Text>\n    <Text>branch: main</Text>\n  </Drawer.Body>\n  <Drawer.Footer><Text tone="muted">enter apply</Text></Drawer.Footer>\n</Drawer>`,
-    node: (
-      <Box width={SHOWCASE_COLUMNS} height={10} flexDirection="column">
-        <Header title="Jobs" status="3 running" />
-        <Text tone="muted">compile · integration · package · publish · notify</Text>
-        <Text tone="muted">worker-01 · worker-02 · worker-03 · worker-04 · idle</Text>
-        <Text tone="muted">retries: 2 · queue depth: 11 · oldest: 4m12s</Text>
-        <Drawer id="filters" open side="right" size="md" title="Filters" bounds={{ width: SHOWCASE_COLUMNS, height: 10 }} onClose={noop}>
-          <Drawer.Body><Text>state: failing</Text><Text>branch: main</Text></Drawer.Body>
-          <Drawer.Footer><Text tone="muted">enter apply</Text></Drawer.Footer>
-        </Drawer>
-      </Box>
-    ),
+    node: <DrawerDemo />, interactive: true,
   },
   {
     slug: "command", name: "Command", group: "Navigation",
     source: `<Command id="palette" query={query} onQueryChange={setQuery} commands={options} onSelect={run} />`,
-    node: <Command id="palette" query="" onQueryChange={noop} commands={options} onSelect={noop} />,
+    node: <CommandDemo />, interactive: true,
   },
   {
     slug: "toast", name: "Toast", group: "Navigation",
@@ -437,7 +605,7 @@ export const SHOWCASE_EXAMPLES: ShowcaseExample[] = [
   {
     slug: "composer", name: "Composer", group: "Human+",
     source: `<Composer id="prompt" value={value} onChange={setValue} onSubmit={send} placeholder="Message…" />`,
-    node: <MultilineInput id="prompt" value="" onChange={noop} placeholder="Message…" />,
+    node: <ComposerDemo />, interactive: true,
   },
   {
     slug: "fancy-tui-provider", name: "FancyTuiProvider", group: "Human+",
