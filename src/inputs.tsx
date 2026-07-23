@@ -1,7 +1,8 @@
-import { useMemo, type ReactNode } from "react";
-import { Box, Text as InkText, useFocus, useInput } from "ink";
+import { useMemo, useRef, type ReactNode } from "react";
+import { Box, Text as InkText, useFocus, useInput, type DOMElement } from "ink";
 import { Row, Stack, Text } from "./layout.js";
 import { useFancyTui } from "./theme.js";
+import { Clickable, useClickable } from "./mouse.js";
 import { useTuiSurface } from "./registry.js";
 import { createTextBuffer, reduceTextBuffer, type CursorPosition, type SelectionRange, type TextBufferState } from "./keyboard/buffer.js";
 import type { InteractiveProps, Option, TuiTone } from "./types.js";
@@ -13,8 +14,13 @@ export interface ButtonProps extends InteractiveProps { children?: ReactNode; on
 export function Button({ id, children, onPress, tone = "primary", disabled = false, loading = false, autoFocus = true }: ButtonProps) {
   const { isFocused } = useFocus({ id, isActive: !disabled, autoFocus });
   useInput((input, key) => { if (isFocused && !disabled && (key.return || input === " ")) onPress(); });
+  // A click does exactly what the keyboard press does — no focus dance required.
+  const ref = useRef<DOMElement | null>(null);
+  useClickable(ref, () => { if (!disabled && !loading) onPress(); }, { disabled });
   useTuiSurface(useMemo(() => ({ id, kind: "button", label: String(children ?? id), read: () => ({ disabled, loading }), commands: [{ name: "press", policy: "execute", invoke: onPress }] }), [id, children, disabled, loading, onPress]));
-  return <InkText inverse={isFocused} dimColor={disabled} color={useFancyTui().theme.colors[tone]}>[ {loading ? "…" : children} ]</InkText>;
+  // A bare Box around the label — no border/padding/margin — is the measurable
+  // click target; it adds a layout node but no cell, so the frame is unchanged.
+  return <Box ref={ref}><InkText inverse={isFocused} dimColor={disabled} color={useFancyTui().theme.colors[tone]}>[ {loading ? "…" : children} ]</InkText></Box>;
 }
 
 export function Field({ label, description, error, children }: { label: string; description?: string; error?: string; children?: ReactNode }) {
@@ -88,7 +94,10 @@ function ChoiceList({ id, options, selected, onToggle, multiple = false, disable
   const { isFocused } = useFocus({ id, isActive: !disabled, autoFocus });
   useInput((input) => { if (!isFocused) return; const index = Number(input) - 1; const option = options[index]; if (option && !option.disabled) onToggle(option.id); });
   useTuiSurface(useMemo(() => ({ id, kind: multiple ? "choice-group" : "choice", read: () => ({ options, selected }), commands: [{ name: "select", invoke: (x) => onToggle(String(x?.id ?? "")) }] }), [id, options, selected, multiple, onToggle]));
-  return <Stack gap={0}>{options.map((option, index) => { const on = selected.includes(option.id); return <Text key={option.id} tone={on ? "primary" : "text"} dimColor={option.disabled}>{index + 1}. {marker?.(on) ?? (on ? "●" : "○")} {option.label}</Text>; })}</Stack>;
+  // Each row is its own click target — clicking an option toggles/selects it,
+  // exactly like pressing its number. The Clickable wraps the row in a bare Box,
+  // which adds a layout node but no cell, so the rendered rows are unchanged.
+  return <Stack gap={0}>{options.map((option, index) => { const on = selected.includes(option.id); return <Clickable key={option.id} onClick={() => { if (!disabled && !option.disabled) onToggle(option.id); }} disabled={disabled || option.disabled}><Text tone={on ? "primary" : "text"} dimColor={option.disabled}>{index + 1}. {marker?.(on) ?? (on ? "●" : "○")} {option.label}</Text></Clickable>; })}</Stack>;
 }
 export function Checkbox({ id, checked, onChange, label, disabled, autoFocus }: InteractiveProps & { checked: boolean; onChange: (value: boolean) => void; label: string }) { return <ChoiceList id={id} options={[{ id, label }]} selected={checked ? [id] : []} onToggle={() => onChange(!checked)} multiple disabled={disabled} autoFocus={autoFocus} marker={(x) => x ? "[x]" : "[ ]"} />; }
 export function CheckboxGroup({ id, value, onChange, options, disabled, autoFocus }: InteractiveProps & { value: string[]; onChange: (value: string[]) => void; options: Option[] }) { return <ChoiceList id={id} options={options} selected={value} onToggle={(x) => onChange(value.includes(x) ? value.filter((v) => v !== x) : [...value, x])} multiple disabled={disabled} autoFocus={autoFocus} marker={(x) => x ? "[x]" : "[ ]"} />; }

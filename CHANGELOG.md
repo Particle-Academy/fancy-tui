@@ -10,6 +10,57 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.9.0] — 2026-07-22
+
+### Added
+
+- **Mouse / click support** — a pointer layer that sits alongside the keyboard
+  one, so every interactive primitive now does on a click exactly what it does
+  on its keystroke. `Button` fires `onPress`; `Menu` / `Dropdown`, `RadioGroup`,
+  `Select`, `Checkbox`, `CheckboxGroup`, `Switch` and `MultiSwitch` select or
+  toggle the clicked row; and — because they compose `Button` — `Tabs`,
+  `Pagination`, `Accordion` and `Command` become clickable for free.
+
+  New public API (exported from the package root):
+
+  - `useClickable(ref, onClick, { disabled? })` — register the Ink `<Box>` a
+    component draws into as a click target.
+  - `<Clickable onClick …boxProps>` — the ergonomic wrapper for the common case
+    (a list row, a footer hint, a menu item): a `<Box>` that fires `onClick`.
+  - `createMouseRegistry()` / `MouseProvider` / `useMouseRegistry()` — the
+    hit-test registry and its context, mirroring the `TuiSurfaceRegistry`
+    pattern. `dispatch(col, row)` fires the innermost registered box containing
+    the point (smallest-area wins, so a button inside a card resolves to the
+    button).
+  - `decodeMouseSgr(input)` — parse an SGR mouse report
+    (`ESC [ < button ; col ; row (M|m)`) into a 0-based, root-relative left-click,
+    rejecting wheel / motion / middle / right.
+
+  **`FancyTuiProvider` now mounts a `MouseProvider` by default**, and by default
+  it decodes SGR mouse reports from stdin itself — so a standalone app gets
+  clicks the moment its terminal is reporting them (enable with
+  `ESC [ ? 1000 ; 1006 h`). A new `mouse` prop tunes this: pass a registry from
+  `createMouseRegistry()` when a HOST owns decoding and dispatch (an embedded
+  terminal reading mouse off its own transport — auto-decode is then off and the
+  host holds the `dispatch` handle), or `false` to mount no mouse layer at all.
+
+  **Additive and non-breaking — no action needed.** Nothing changes how a
+  component renders (the click target is a border-less, padding-less `<Box>`
+  that adds a layout node but no cell — `showcase/previews.json` is byte-for-byte
+  unchanged) or how it reads the keyboard. A component with no `useClickable` is
+  simply not clickable; a tree with no `MouseProvider` registers nothing and
+  every hook no-ops.
+
+### Notes
+
+- Coordinates are **root-relative**: `measureElement` reports a box's position
+  relative to the Ink root (accumulating ancestor offsets), NOT to any nested
+  `FancyTuiProvider`. So a host that claims the whole terminal can feed
+  `decodeMouseSgr`'s output straight to `dispatch` with no per-pane offset. Text
+  inputs (`Input` / `MultilineInput`) and `Slider` are intentionally not wired —
+  a click on them has no single keyboard equivalent — and wheel / drag are not
+  interpreted.
+
 ## [0.8.0] — 2026-07-22
 
 ### Added
@@ -252,7 +303,8 @@ other component — real Ink renders, never hand-authored art.
 `Hero` ships with a showcase capture like every other component, so its docs
 preview is a real Ink render rather than art.
 
-[Unreleased]: https://github.com/Particle-Academy/fancy-tui/compare/v0.8.0...HEAD
+[Unreleased]: https://github.com/Particle-Academy/fancy-tui/compare/v0.9.0...HEAD
+[0.9.0]: https://github.com/Particle-Academy/fancy-tui/compare/v0.8.0...v0.9.0
 [0.8.0]: https://github.com/Particle-Academy/fancy-tui/compare/v0.7.0...v0.8.0
 [0.7.0]: https://github.com/Particle-Academy/fancy-tui/compare/v0.6.0...v0.7.0
 [0.6.0]: https://github.com/Particle-Academy/fancy-tui/compare/v0.5.0...v0.6.0

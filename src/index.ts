@@ -1,5 +1,6 @@
 export * from "./types.js";
 export * from "./theme.js";
+export * from "./mouse.js";
 export * from "./registry.js";
 export * from "./layout.js";
 export * from "./display.js";

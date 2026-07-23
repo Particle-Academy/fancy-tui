@@ -1,6 +1,7 @@
 import { useMemo, type ReactNode } from "react";
 import { Box, useFocus, useInput } from "ink";
 import { Button } from "./inputs.js";
+import { Clickable } from "./mouse.js";
 import { Panel, Row, Stack, Text, tuiNode } from "./layout.js";
 import { OverlayBody, OverlayFooter, OverlayHeader, OverlayProvider, OverlaySurface, modalRect, overlayFits, type OverlayBounds, type OverlaySize } from "./overlay.js";
 import { useTuiSurface } from "./registry.js";
@@ -20,7 +21,10 @@ export function Pagination({ id, page, pages, onChange }: InteractiveProps & { p
 export function Menu({ id, value, onChange, items, disabled = false, autoFocus = true }: InteractiveProps & { value?: string; onChange: (id: string) => void; items: Option[] }) {
   const { isFocused } = useFocus({ id, isActive: !disabled, autoFocus }); let index = Math.max(0, items.findIndex((x) => x.id === value));
   useInput((_input, key) => { if (!isFocused) return; if (key.downArrow) onChange(items[Math.min(items.length - 1, index + 1)]?.id ?? value ?? ""); if (key.upArrow) onChange(items[Math.max(0, index - 1)]?.id ?? value ?? ""); });
-  return <Stack gap={0}>{items.map((item) => <Text key={item.id} tone={item.id === value ? "primary" : "text"}>{item.id === value ? "› " : "  "}{item.label}</Text>)}</Stack>;
+  // Each item is clickable — clicking selects it, like arrowing onto it. The
+  // Clickable wraps the row in a bare Box (a layout node, no cell), so the
+  // rendered menu is unchanged.
+  return <Stack gap={0}>{items.map((item) => <Clickable key={item.id} onClick={() => { if (!disabled && !item.disabled) onChange(item.id); }} disabled={disabled || item.disabled}><Text tone={item.id === value ? "primary" : "text"}>{item.id === value ? "› " : "  "}{item.label}</Text></Clickable>)}</Stack>;
 }
 export const Dropdown = Menu;
 

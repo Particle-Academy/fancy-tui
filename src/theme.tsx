@@ -1,5 +1,6 @@
 import { createContext, useContext, useMemo, type ReactNode } from "react";
 import { useStdout } from "ink";
+import { MouseProvider, type MouseRegistry } from "./mouse.js";
 import type { TerminalCapabilities, TuiTheme } from "./types.js";
 
 export const darkTheme: TuiTheme = {
@@ -35,9 +36,20 @@ export interface FancyTuiProviderProps {
    */
   width?: number;
   height?: number;
+  /**
+   * Mouse / click support.
+   *
+   * - Omit for the default: an internal registry that decodes SGR mouse reports
+   *   from stdin itself, so a standalone app gets clicks for free.
+   * - Pass a registry from `createMouseRegistry()` when a HOST owns decoding and
+   *   dispatch (an embedded terminal that reads mouse from its own transport);
+   *   auto-decode is then off, and the host holds the reference to `dispatch`.
+   * - Pass `false` to mount no mouse layer at all.
+   */
+  mouse?: MouseRegistry | false;
 }
 
-export function FancyTuiProvider({ children, theme = darkTheme, capabilities, width, height }: FancyTuiProviderProps) {
+export function FancyTuiProvider({ children, theme = darkTheme, capabilities, width, height, mouse }: FancyTuiProviderProps) {
   const { stdout } = useStdout();
   const value = useMemo(() => ({
     theme,
@@ -45,7 +57,16 @@ export function FancyTuiProvider({ children, theme = darkTheme, capabilities, wi
     width: width ?? stdout?.columns ?? 80,
     height: height ?? stdout?.rows ?? 24,
   }), [theme, capabilities, width, height, stdout?.columns, stdout?.rows]);
-  return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
+  if (mouse === false) {
+    return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
+  }
+  return (
+    <ThemeContext.Provider value={value}>
+      <MouseProvider registry={mouse || undefined} autoDecode={mouse === undefined}>
+        {children}
+      </MouseProvider>
+    </ThemeContext.Provider>
+  );
 }
 
 export const useFancyTui = () => useContext(ThemeContext);
