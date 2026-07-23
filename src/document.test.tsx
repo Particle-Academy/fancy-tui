@@ -40,6 +40,20 @@ it("parses attributes off the opening tag", () => {
   assert.deepEqual(seg.type === "extension" ? seg.attributes : null, { status: "done", id: "7", flag: "" });
 });
 
+it("parses a bare dash-heavy attribute name alongside a quoted one", () => {
+  // Guards the rewrite of the attribute parser away from the 3-branch
+  // alternation CodeQL flagged as polynomial ReDoS (js/polynomial-redos). A
+  // timing assertion is NOT used: a single dash run is linear even for the old
+  // regex, so it cannot distinguish the two — CodeQL re-scanning the rewritten
+  // regex is the real gate. This asserts the behaviour the rewrite must keep:
+  // a bare `[\w-]+` name and a quoted value on the same tag both parse.
+  const ext = { tag: "plan", component: () => null };
+  const segs = segmentDocument(`<plan data-a-b-c status="ok">body</plan>`, [ext]);
+  const seg = segs[0];
+  assert.equal(seg?.type, "extension");
+  assert.deepEqual(seg.type === "extension" ? seg.attributes : null, { "data-a-b-c": "", status: "ok" });
+});
+
 it("matches tags case-insensitively", () => {
   const segs = segmentDocument("<THINKING>x</THINKING>", [{ tag: "thinking", component: () => null }]);
   assert.equal(segs[0]?.type, "extension");

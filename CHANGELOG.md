@@ -10,6 +10,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.9.1] — 2026-07-23
+
+### Security
+
+- **`DocumentViewer` attribute parser — polynomial ReDoS fixed** (CodeQL
+  `js/polynomial-redos`, high). `parseAttributes` used a three-branch
+  alternation each starting with `[\w-]+`; a tag whose attribute name was not
+  followed by `=` re-scanned that run across branches, quadratic on names with
+  many `-`. Since a `<DocumentViewer>` may render untrusted document content,
+  this was a real CPU-DoS vector. Rewritten to match a name once with an
+  optional quoted value — linear.
+
+  **Nothing to do.** Parsing behaviour is unchanged (bare names, `"…"` and
+  `'…'` values all parse as before); only the internal regex changed.
+
 ## [0.9.0] — 2026-07-22
 
 ### Added

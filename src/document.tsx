@@ -68,12 +68,17 @@ export function unregisterDocumentExtension(tag: string): boolean {
 
 function parseAttributes(raw: string): Record<string, string> {
   const attrs: Record<string, string> = {};
-  const re = /([\w-]+)\s*=\s*"([^"]*)"|([\w-]+)\s*=\s*'([^']*)'|([\w-]+)/g;
+  // Match a name ONCE, then an OPTIONAL quoted value — not three alternatives
+  // each beginning with `[\w-]+`. The old alternation re-scanned the same
+  // `[\w-]+` run across branches whenever a name was not followed by `=`, a
+  // polynomial ReDoS (CodeQL js/polynomial-redos) on inputs with many `-`.
+  // `raw` is document content that may be untrusted, so this is a real DoS
+  // vector, not a theoretical one. This form matches each name in linear time.
+  const re = /([\w-]+)(?:\s*=\s*(?:"([^"]*)"|'([^']*)'))?/g;
   let m: RegExpExecArray | null;
   while ((m = re.exec(raw)) !== null) {
-    if (m[1]) attrs[m[1]] = m[2] ?? "";
-    else if (m[3]) attrs[m[3]] = m[4] ?? "";
-    else if (m[5]) attrs[m[5]] = "";
+    const name = m[1];
+    if (name) attrs[name] = m[2] ?? m[3] ?? "";
   }
   return attrs;
 }
