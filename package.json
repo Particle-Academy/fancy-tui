@@ -47,7 +47,7 @@
   "scripts": {
     "build": "tsdown",
     "dev": "tsdown --watch",
-    "lint": "tsc --noEmit",
+    "lint": "tsc --noEmit && eslint .",
     "test": "tsc -p tsconfig.test.json && node --test .test-dist/**/*.test.js",
     "prepublishOnly": "npm run test && npm run lint && npm run build",
     "showcase": "tsc -p tsconfig.showcase.json && node .showcase-dist/scripts/showcase.js"
@@ -66,11 +66,14 @@
     "@types/marked-terminal": "^6.1.1",
     "@types/node": "^24.0.0",
     "@types/react": "^19.2.0",
+    "eslint": "^10.8.0",
+    "eslint-plugin-react-hooks": "^7.1.1",
     "ink": "^7.1.1",
     "ink-testing-library": "^4.0.0",
     "react": "^19.2.0",
     "tsdown": "^0.22.9",
-    "typescript": "^5.9.0"
+    "typescript": "^5.9.0",
+    "typescript-eslint": "^8.65.0"
   },
   "publishConfig": {
     "access": "public"
