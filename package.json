@@ -48,7 +48,7 @@
     "build": "tsdown",
     "dev": "tsdown --watch",
     "lint": "tsc --noEmit && eslint .",
-    "test": "tsc -p tsconfig.test.json && node --test .test-dist/**/*.test.js",
+    "test": "tsc -p tsconfig.test.json && node --test \".test-dist/**/*.test.js\"",
     "prepublishOnly": "npm run test && npm run lint && npm run build",
     "showcase": "tsc -p tsconfig.showcase.json && node .showcase-dist/scripts/showcase.js"
   },
