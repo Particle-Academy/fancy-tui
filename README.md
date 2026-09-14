@@ -1,5 +1,7 @@
 # @particle-academy/fancy-tui
 
+[![Fancified](art/fancified.svg)](https://particle.academy)
+
 Ink components for Human+ terminal applications. Fancy TUI mirrors the controlled state, stable handles, JSON-friendly inputs, and bridgeable workflows of Fancy UI while respecting terminal layout and input constraints.
 
 ```tsx
