@@ -7,7 +7,7 @@
  * consumer gets under `FORCE_COLOR=0` versus a colour terminal is to start a
  * process with that environment, not to poke a level into a shared instance.
  */
-import { renderMarkdown } from "./render.js";
+import { renderMarkdown } from "../render.js";
 import { MARKED_TERMINAL_GOLDEN } from "./golden.js";
 
 const out: Record<string, string> = {};

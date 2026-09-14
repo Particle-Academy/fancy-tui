@@ -10,6 +10,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **Markdown is rendered by fancy-tui itself; `marked-terminal` is gone.** `renderMarkdown`, `<Markdown>`, `<CodeView>`, `<Message>` and `<DocumentViewer>` now walk `marked`'s tokens with a first-party renderer. The API is unchanged — `renderMarkdown(source: string): string` — and so is the look: `#` heading prefixes, `*` bullets, two-space indents, box-drawn tables, the same colour palette, 80-column wrapping.
+
+  **What you must do:** nothing, unless you snapshot rendered markdown strings — those change where this entry says so. Colour output also sheds redundant `ESC[0m` resets, so byte-level snapshots of coloured output will differ even where nothing looks different. Your install tree loses 50 packages (`marked-terminal`, `cli-highlight` and `highlight.js`, `cli-table3`, `node-emoji`, `supports-hyperlinks` and their dependencies).
+
+  Why: marked-terminal has not released since 2025-01-28 and fails the kit's 92-day freshness bar for third-party code. Before anything changed, its actual output for a 94-case corpus was captured in three environments; 66 cases still render identically in plain and in colour, and every one that does not is listed with its reason in `src/markdown/golden/differences.ts`.
+
+- **Links always print `label (url)`. OSC 8 hyperlinks are never emitted.** In terminals that advertise hyperlink support (Windows Terminal, iTerm2, VS Code, WezTerm, ghostty) marked-terminal emitted OSC 8 links, which show only the label — and in agent output the label is untrusted, so `[https://bank.example](https://evil.example)` displayed as the bank. **What you must do:** nothing. The URL is now printed beside the label in every terminal, and those terminals make a printed URL clickable.
+
+- **Syntax highlighting is first-party** for TypeScript/JavaScript (including JSX), JSON, shell, Python, PHP, SQL, YAML and diff, in the colours highlight.js used for them. Fences in any other language render uncoloured, as does a fence with no language (highlight.js guessed one and coloured ordinary words as keywords); an unrecognised language no longer turns the whole block yellow. **What you must do:** nothing. If a language you render needs colour, open an issue with a sample.
+
+- **Emoji shortcodes are printed as written.** `:rocket:` stays `:rocket:` — that table was node-emoji's, via marked-terminal. **What you must do:** write the emoji character itself.
+
+### Fixed
+
+- **Ordered lists keep their numbers.** A list starting at `3.` renders 3, a list interrupted by a code block keeps counting, and a bullet list nested in an ordered item no longer absorbs the outer list's numbering (`* detail a`, `2. detail b`, `3. next step`). All were renumbered before.
+- **Formatting inside list items renders.** `**bold**`, `` `code` `` and `[links](url)` in a tight list item printed as raw markdown.
+- **Long list items wrap** at the width, continuing under the item's text. They never wrapped.
+- **Blockquotes are styled.** A reset around each paragraph cancelled the quote's gray italic, so only wrapped continuation lines showed it. Lists and code blocks inside a quote also keep their indent on the first line.
+- **Wrapping measures terminal columns.** CJK characters and emoji count as two, and a cut never splits a grapheme cluster: a line of Japanese used to print 138 columns wide.
+- **Every line closes its own styles.** A style left open across a line break broke `DocumentViewer`, which renders its scroll window line by line, and redundant full resets cancelled the style of an enclosing `<Text>`.
+- **Nested list items have no blank lines between them in colour.** Plain output never did; colour output did.
+- **Table alignment** from the delimiter row (`:---:`, `---:`) is honoured.
+- A task checkbox is followed by one space, not two; a standalone image no longer ends in a space; code spans are literal, so `` `&amp;` `` shows `&amp;`.
+- Hostile code blocks — deeply nested template substitutions, long runs of `<` — can neither exhaust the stack nor take quadratic time.
+
 ## [0.10.0] — 2026-08-07
 
 ### Changed

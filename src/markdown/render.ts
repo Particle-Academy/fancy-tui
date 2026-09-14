@@ -1,10 +1,4 @@
-import { Marked } from "marked";
-import { markedTerminal } from "marked-terminal";
-
-// marked-terminal's DefinitelyTyped signature still models the pre-token
-// renderer API although v7 supports marked 15 at runtime.
-const parser = new Marked();
-parser.use(markedTerminal({ reflowText: true, tab: 2 }) as never);
+import { renderTerminalMarkdown } from "./terminal.js";
 
 // C0 control codes we keep: TAB (9), LF (10), CR (13). Everything else in
 // 0x00-0x1F, plus DEL (0x7F), is stripped from untrusted markdown before it
@@ -29,7 +23,12 @@ function stripControlChars(source: string): string {
   return out;
 }
 
+/**
+ * Render markdown as ANSI text for a terminal, wrapped at 80 columns.
+ *
+ * Colour follows chalk's detection of the environment (`FORCE_COLOR`, a TTY);
+ * with colour off the output is plain text in the same layout.
+ */
 export function renderMarkdown(source: string): string {
-  const result = parser.parse(stripControlChars(source));
-  return String(result).trimEnd();
+  return renderTerminalMarkdown(stripControlChars(source));
 }
