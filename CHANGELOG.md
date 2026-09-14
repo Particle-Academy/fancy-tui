@@ -10,6 +10,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.11.0] — 2026-09-13
+
 ### Changed
 
 - **Markdown is rendered by fancy-tui itself; `marked-terminal` is gone.** `renderMarkdown`, `<Markdown>`, `<CodeView>`, `<Message>` and `<DocumentViewer>` now walk `marked`'s tokens with a first-party renderer. The API is unchanged — `renderMarkdown(source: string): string` — and so is the look: `#` heading prefixes, `*` bullets, two-space indents, box-drawn tables, the same colour palette, 80-column wrapping.
