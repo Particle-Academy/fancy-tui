@@ -3,7 +3,7 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { afterEach, it } from "node:test";
 import React from "react";
-import { cleanup, render } from "ink-testing-library";
+import { cleanup, render } from "./render-harness.js";
 
 import { FancyTuiProvider } from "./theme.js";
 import { Box } from "./layout.js";

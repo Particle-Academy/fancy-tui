@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { afterEach, it } from "node:test";
 import React from "react";
 import { Text as InkText, measureElement } from "ink";
-import { cleanup, render } from "ink-testing-library";
+import { cleanup, render } from "./render-harness.js";
 import { FancyTuiProvider } from "./theme.js";
 import { Box } from "./layout.js";
 import { Button } from "./inputs.js";

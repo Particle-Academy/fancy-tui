@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { afterEach, it } from "node:test";
 import React from "react";
-import { cleanup, render } from "ink-testing-library";
+import { cleanup, render } from "./render-harness.js";
 import stringWidth from "string-width";
 import { FancyTuiProvider } from "./theme.js";
 import { Card, Header, Hero, Panel, Responsive, Row, Screen, Stack, StatusBar, Text } from "./layout.js";

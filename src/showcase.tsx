@@ -610,7 +610,7 @@ export const SHOWCASE_EXAMPLES: ShowcaseExample[] = [
   {
     slug: "fancy-tui-provider", name: "FancyTuiProvider", group: "Human+",
     source: `<FancyTuiProvider>\n  <Header title="Deploy agent" status="connected" />\n  <Panel title="Run"><Text>Ready for instructions.</Text></Panel>\n</FancyTuiProvider>`,
-    // A bare Fragment renders nothing through ink-testing-library — Ink needs a
+    // A bare Fragment renders nothing in the render harness — Ink needs a
     // layout node to measure against, so wrap the pair in a Stack.
     node: <Stack gap="sm"><Header title="Deploy agent" status="connected" /><Panel title="Run"><Text>Ready for instructions.</Text></Panel></Stack>,
   },

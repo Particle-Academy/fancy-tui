@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { afterEach, it } from "node:test";
 import React, { type ReactNode } from "react";
 import { Box, Text as InkText } from "ink";
-import { cleanup, render } from "ink-testing-library";
+import { cleanup, render } from "./render-harness.js";
 import { FancyTuiProvider } from "./theme.js";
 import { Card, Text } from "./layout.js";
 import { Modal } from "./navigation.js";

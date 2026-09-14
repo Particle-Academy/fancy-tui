@@ -24,6 +24,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **Emoji shortcodes are printed as written.** `:rocket:` stays `:rocket:` — that table was node-emoji's, via marked-terminal. **What you must do:** write the emoji character itself.
 
+- **Internal: the test suite and the showcase capture render Ink through a first-party harness** instead of `ink-testing-library` (dev-only; no commit upstream since 2024). **What you must do:** nothing — it never shipped to consumers, and all 62 captured previews in `showcase/previews.json` came out byte-identical.
+
 ### Fixed
 
 - **Ordered lists keep their numbers.** A list starting at `3.` renders 3, a list interrupted by a code block keeps counting, and a bullet list nested in an ordered item no longer absorbs the outer list's numbering (`* detail a`, `2. detail b`, `3. next step`). All were renumbered before.

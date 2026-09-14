@@ -16,7 +16,7 @@
  * Run: npm run showcase  (writes showcase/previews.json)
  */
 import React from "react";
-import { render } from "ink-testing-library";
+import { render } from "../src/render-harness.js";
 import { writeFileSync, mkdirSync } from "node:fs";
 import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";

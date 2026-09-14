@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { afterEach, it } from "node:test";
 import React from "react";
-import { cleanup, render } from "ink-testing-library";
+import { cleanup, render } from "./render-harness.js";
 import { FancyTuiProvider } from "./theme.js";
 import { Text } from "./layout.js";
 import {
