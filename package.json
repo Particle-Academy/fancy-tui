@@ -40,9 +40,9 @@
   },
   "files": [
     "dist",
-    "docs",
     "README.md",
-    "showcase"
+    "showcase",
+    "CHANGELOG.md"
   ],
   "scripts": {
     "build": "tsdown",
