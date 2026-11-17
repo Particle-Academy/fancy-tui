@@ -1,11 +1,53 @@
-# Fancy TUI contributor guide
+# Using @particle-academy/fancy-tui — guide for agents
 
-Fancy TUI is the Ink 7 terminal sibling of `@particle-academy/react-fancy`.
+How an agent installs and uses this package in a consumer app. What the package
+is, is in [README.md](./README.md). Notes for working ON this repo's code are in
+[CONTRIBUTING.md](./CONTRIBUTING.md).
 
-- Target Node 22 and React 19.2.
-- Ink owns Yoga; do not depend on `yoga-layout` directly.
-- Interactive components require explicit stable `id` values, controlled state, JSON-friendly inputs, and registry commands.
-- Keep MCP out of this package. `@particle-academy/agent-integrations/bridges/tui` adapts the renderer-neutral surface registry.
-- Enter submits multiline inputs. Alt+Enter always inserts a newline; Shift+Enter only works after enhanced keyboard support is confirmed.
-- Committed logs/messages use Ink `Static`; changing live state belongs below them in `LiveRegion`.
-- Add model tests before renderer behavior. Run `npm test && npm run lint && npm run build` before release.
+## Install
+
+```bash
+npm install @particle-academy/fancy-tui ink react
+```
+
+- **Peers:** `ink ^7.1.0`, `react ^19.2.0`.
+- **Node:** `>=22`. ESM only.
+
+## Find it on the Fancy MCP server
+
+The catalog server is `https://ui.particle.academy/mcp` (streamable HTTP, no API
+key; MCP id `fancy-ui`). The package's registry entries have `package` =
+`fancy-tui`: `fancy-tui` for the package as a whole, and one `tui-<component>`
+slug per component (`tui-composer`, `tui-message-list`, `tui-live-region`,
+`tui-panel`, `tui-modal`, `tui-table`, ...).
+
+| Need | Tool |
+|---|---|
+| Is there a terminal component for X? | `search-components` |
+| Exact install commands for a slug | `install-instructions` |
+| The full source bundle | `get-component` |
+
+## API essentials
+
+- Wrap the app in `<FancyTuiProvider>`.
+- **Controlled state.** Interactive components take `value` + `onChange` and an
+  explicit stable `id`.
+- **Surface registry.** `createTuiSurfaceRegistry()`, `<TuiSurfaceProvider>` and
+  `useTuiSurface({ id, kind, read, commands })` make a surface addressable. The
+  MCP side is not in this package: `registerTuiBridge` from
+  `@particle-academy/agent-integrations/bridges/tui` exposes the registry as
+  tools (`tui_surfaces_list`, `tui_surface_read`, `tui_action_invoke`, ...).
+- `useFocusManager` is re-exported from Ink, so programmatic focus needs no
+  direct `ink` import.
+- Subpaths: `/keyboard`, `/markdown`, `/testing`.
+
+## Traps
+
+- **Committed vs live output.** Committed logs and messages go through
+  `MessageList` (Ink `Static`); anything still changing belongs below them in
+  `<LiveRegion>`.
+- **Newlines.** Enter submits multiline inputs. Alt+Enter always inserts a
+  newline; Shift+Enter works only once enhanced keyboard reporting is confirmed.
+- **Focus is first-come.** Components auto-focus by default; moving focus later
+  (opening a modal, switching panes) needs an explicit `focus(id)`.
+- Do not add `yoga-layout`; Ink owns it.
