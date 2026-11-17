@@ -19,8 +19,8 @@ import { FancyTuiProvider, Panel, MessageList, LiveRegion, Spinner, Composer } f
 Requires Node 22, React 19.2, and Ink 7. Alt+Enter inserts a newline everywhere; Shift+Enter is enabled only when enhanced keyboard reporting is available.
 
 <!-- fancy-agents-note:start -->
-> **For agents.** Every Fancy package, this one included, is listed on the
-> Fancy MCP catalog server at `https://ui.particle.academy/mcp` (streamable HTTP, no API key;
-> MCP id `fancy-ui`), with install commands and docs. How an agent installs
-> and uses this package is in [AGENTS.md](https://github.com/Particle-Academy/fancy-tui/blob/main/AGENTS.md).
+> **For agents.** This package is listed on the Fancy MCP catalog server at
+> `https://ui.particle.academy/mcp` (streamable HTTP, no API key; MCP id `fancy-ui`),
+> with install commands and docs, alongside the rest of the kit. How an agent
+> installs and uses this package is in [AGENTS.md](https://github.com/Particle-Academy/fancy-tui/blob/main/AGENTS.md).
 <!-- fancy-agents-note:end -->
